@@ -1,0 +1,266 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 8
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e04f0c2d2b594f0b933d85abe00c2fb1, type: 3}
+  m_Name: LevelAssetUndoBridge
+  m_EditorClassIdentifier: 
+  created:
+  - assetPath: Assets/ProjectName/Levels/Content/Level_007.asset
+    json: '{"MonoBehaviour":{"m_Enabled":true,"m_EditorHideFlags":0,"m_Name":"Level_007","m_EditorClassIdentifier":"","stableId":"0d65a473a5cf43d780ca010393ed34d4","timeLimitSeconds":120,"difficulty":90,"goals":[{"Type":0,"Target":50,"Tag":"Buildings"},{"Type":1,"Target":20,"Tag":"Medium
+      Size"}]}}'
+    databasePath: 
+    databaseIndex: -1
+  - assetPath: Assets/ProjectName/Levels/Content/Level_008.asset
+    json: '{"MonoBehaviour":{"m_Enabled":true,"m_EditorHideFlags":0,"m_Name":"Level_008","m_EditorClassIdentifier":"","stableId":"8d3dcb80f0664ae9928a3212e530aa60","timeLimitSeconds":120,"difficulty":90,"goals":[{"Type":0,"Target":50,"Tag":"Buildings"},{"Type":1,"Target":20,"Tag":"Medium
+      Size"}]}}'
+    databasePath: 
+    databaseIndex: -1
+  - assetPath: Assets/ProjectName/Levels/Content/Level_009.asset
+    json: '{"MonoBehaviour":{"m_Enabled":true,"m_EditorHideFlags":0,"m_Name":"Level_009","m_EditorClassIdentifier":"","stableId":"96576c0639b94193a0ffbc29f96fa83f","timeLimitSeconds":120,"difficulty":90,"goals":[{"Type":0,"Target":50,"Tag":"Buildings"},{"Type":1,"Target":20,"Tag":"Medium
+      Size"}]}}'
+    databasePath: 
+    databaseIndex: -1
+  - assetPath: Assets/ProjectName/Levels/Content/Level_010.asset
+    json: '{"MonoBehaviour":{"m_Enabled":true,"m_EditorHideFlags":0,"m_Name":"Level_010","m_EditorClassIdentifier":"","stableId":"993c19f15e2e447bb088a92f0673e037","timeLimitSeconds":120,"difficulty":90,"goals":[{"Type":0,"Target":50,"Tag":"Buildings"},{"Type":1,"Target":20,"Tag":"Medium
+      Size"}]}}'
+    databasePath: 
+    databaseIndex: -1
+  - assetPath: Assets/ProjectName/Levels/Content/Level_011.asset
+    json: '{"MonoBehaviour":{"m_Enabled":true,"m_EditorHideFlags":0,"m_Name":"Level_011","m_EditorClassIdentifier":"","stableId":"d300bef76d6148539c980ad399483743","timeLimitSeconds":120,"difficulty":90,"goals":[{"Type":0,"Target":50,"Tag":"Buildings"},{"Type":1,"Target":20,"Tag":"Medium
+      Size"}]}}'
+    databasePath: 
+    databaseIndex: -1
+  - assetPath: Assets/ProjectName/Levels/Content/Level_012.asset
+    json: '{"MonoBehaviour":{"m_Enabled":true,"m_EditorHideFlags":0,"m_Name":"Level_012","m_EditorClassIdentifier":"","stableId":"dbc3f1f27bc04cfc9f31b684cfcb6141","timeLimitSeconds":120,"difficulty":90,"goals":[{"Type":0,"Target":50,"Tag":"Buildings"},{"Type":1,"Target":20,"Tag":"Medium
+      Size"}]}}'
+    databasePath: 
+    databaseIndex: -1
+  - assetPath: Assets/ProjectName/Levels/Content/Level_013.asset
+    json: '{"MonoBehaviour":{"m_Enabled":true,"m_EditorHideFlags":0,"m_Name":"Level_013","m_EditorClassIdentifier":"","stableId":"ffaa54c703e449069e67a1125a8a06a5","timeLimitSeconds":120,"difficulty":90,"goals":[{"Type":0,"Target":50,"Tag":"Buildings"},{"Type":1,"Target":20,"Tag":"Medium
+      Size"}]}}'
+    databasePath: 
+    databaseIndex: -1
+  - assetPath: Assets/ProjectName/Levels/Content/Level_014.asset
+    json: '{"MonoBehaviour":{"m_Enabled":true,"m_EditorHideFlags":0,"m_Name":"Level_014","m_EditorClassIdentifier":"","stableId":"d05fb66979a144778389d06c6ef15bbe","timeLimitSeconds":120,"difficulty":90,"goals":[{"Type":0,"Target":50,"Tag":"Buildings"},{"Type":1,"Target":20,"Tag":"Medium
+      Size"}]}}'
+    databasePath: 
+    databaseIndex: -1
+  - assetPath: Assets/ProjectName/Levels/Content/Level_015.asset
+    json: '{"MonoBehaviour":{"m_Enabled":true,"m_EditorHideFlags":0,"m_Name":"Level_015","m_EditorClassIdentifier":"","stableId":"bd5fa899c15248a9b3271a7d95376c63","timeLimitSeconds":120,"difficulty":90,"goals":[{"Type":0,"Target":50,"Tag":"Buildings"},{"Type":1,"Target":20,"Tag":"Medium
+      Size"}]}}'
+    databasePath: 
+    databaseIndex: -1
+  - assetPath: Assets/ProjectName/Levels/Content/Level_016.asset
+    json: '{"MonoBehaviour":{"m_Enabled":true,"m_EditorHideFlags":0,"m_Name":"Level_016","m_EditorClassIdentifier":"","stableId":"2988ffc5331344968005382503a1cb7c","timeLimitSeconds":120,"difficulty":90,"goals":[{"Type":0,"Target":50,"Tag":"Buildings"},{"Type":1,"Target":20,"Tag":"Medium
+      Size"}]}}'
+    databasePath: 
+    databaseIndex: -1
+  - assetPath: Assets/ProjectName/Levels/Content/Level_017.asset
+    json: '{"MonoBehaviour":{"m_Enabled":true,"m_EditorHideFlags":0,"m_Name":"Level_017","m_EditorClassIdentifier":"","stableId":"01fccb32e04445a19c20424b07b30f08","timeLimitSeconds":120,"difficulty":90,"goals":[{"Type":0,"Target":50,"Tag":"Buildings"},{"Type":1,"Target":20,"Tag":"Medium
+      Size"}]}}'
+    databasePath: 
+    databaseIndex: -1
+  - assetPath: Assets/ProjectName/Levels/Content/Level_018.asset
+    json: '{"MonoBehaviour":{"m_Enabled":true,"m_EditorHideFlags":0,"m_Name":"Level_018","m_EditorClassIdentifier":"","stableId":"bfa12c5e9b354175b34de847fc4b2eaf","timeLimitSeconds":120,"difficulty":90,"goals":[{"Type":0,"Target":50,"Tag":"Buildings"},{"Type":1,"Target":20,"Tag":"Medium
+      Size"}]}}'
+    databasePath: 
+    databaseIndex: -1
+  - assetPath: Assets/ProjectName/Levels/Content/Level_019.asset
+    json: '{"MonoBehaviour":{"m_Enabled":true,"m_EditorHideFlags":0,"m_Name":"Level_019","m_EditorClassIdentifier":"","stableId":"e8a6193477724e2e952b4f1e74664b0e","timeLimitSeconds":120,"difficulty":90,"goals":[{"Type":0,"Target":50,"Tag":"Buildings"},{"Type":1,"Target":20,"Tag":"Medium
+      Size"}]}}'
+    databasePath: 
+    databaseIndex: -1
+  - assetPath: Assets/ProjectName/Levels/Content/Level_020.asset
+    json: '{"MonoBehaviour":{"m_Enabled":true,"m_EditorHideFlags":0,"m_Name":"Level_020","m_EditorClassIdentifier":"","stableId":"f8f48743219542a396c6af74ebd635d5","timeLimitSeconds":120,"difficulty":90,"goals":[{"Type":0,"Target":50,"Tag":"Buildings"},{"Type":1,"Target":20,"Tag":"Medium
+      Size"}]}}'
+    databasePath: 
+    databaseIndex: -1
+  - assetPath: Assets/ProjectName/Levels/Content/Level_021.asset
+    json: '{"MonoBehaviour":{"m_Enabled":true,"m_EditorHideFlags":0,"m_Name":"Level_021","m_EditorClassIdentifier":"","stableId":"ba851154f0a247fca5289b41f3515bb5","timeLimitSeconds":120,"difficulty":90,"goals":[{"Type":0,"Target":50,"Tag":"Buildings"},{"Type":1,"Target":20,"Tag":"Medium
+      Size"}]}}'
+    databasePath: 
+    databaseIndex: -1
+  - assetPath: Assets/ProjectName/Levels/Content/Level_022.asset
+    json: '{"MonoBehaviour":{"m_Enabled":true,"m_EditorHideFlags":0,"m_Name":"Level_022","m_EditorClassIdentifier":"","stableId":"52133eaaf65a4345983e3ac42570e769","timeLimitSeconds":120,"difficulty":90,"goals":[{"Type":0,"Target":50,"Tag":"Buildings"},{"Type":1,"Target":20,"Tag":"Medium
+      Size"}]}}'
+    databasePath: 
+    databaseIndex: -1
+  - assetPath: Assets/ProjectName/Levels/Content/Level_023.asset
+    json: '{"MonoBehaviour":{"m_Enabled":true,"m_EditorHideFlags":0,"m_Name":"Level_023","m_EditorClassIdentifier":"","stableId":"a454ecdcf3b14fd8b7639d9b344c0df9","timeLimitSeconds":120,"difficulty":90,"goals":[{"Type":0,"Target":50,"Tag":"Buildings"},{"Type":1,"Target":20,"Tag":"Medium
+      Size"}]}}'
+    databasePath: 
+    databaseIndex: -1
+  - assetPath: Assets/ProjectName/Levels/Content/Level_024.asset
+    json: '{"MonoBehaviour":{"m_Enabled":true,"m_EditorHideFlags":0,"m_Name":"Level_024","m_EditorClassIdentifier":"","stableId":"109d176117a24d29b1f4ed4aacaf6cdf","timeLimitSeconds":120,"difficulty":90,"goals":[{"Type":0,"Target":50,"Tag":"Buildings"},{"Type":1,"Target":20,"Tag":"Medium
+      Size"}]}}'
+    databasePath: 
+    databaseIndex: -1
+  - assetPath: Assets/ProjectName/Levels/Content/Level_025.asset
+    json: '{"MonoBehaviour":{"m_Enabled":true,"m_EditorHideFlags":0,"m_Name":"Level_025","m_EditorClassIdentifier":"","stableId":"a7cc8872458e4539aabb52878f234b2a","timeLimitSeconds":120,"difficulty":90,"goals":[{"Type":0,"Target":50,"Tag":"Buildings"},{"Type":1,"Target":20,"Tag":"Medium
+      Size"}]}}'
+    databasePath: 
+    databaseIndex: -1
+  - assetPath: Assets/ProjectName/Levels/Content/Level_026.asset
+    json: '{"MonoBehaviour":{"m_Enabled":true,"m_EditorHideFlags":0,"m_Name":"Level_026","m_EditorClassIdentifier":"","stableId":"1186cded6c2f4f06bb842a432a2b51a6","timeLimitSeconds":120,"difficulty":90,"goals":[{"Type":0,"Target":50,"Tag":"Buildings"},{"Type":1,"Target":20,"Tag":"Medium
+      Size"}]}}'
+    databasePath: 
+    databaseIndex: -1
+  - assetPath: Assets/ProjectName/Levels/Content/Level_027.asset
+    json: '{"MonoBehaviour":{"m_Enabled":true,"m_EditorHideFlags":0,"m_Name":"Level_027","m_EditorClassIdentifier":"","stableId":"6ca3303aee6a4626a9cdc80e61a82f56","timeLimitSeconds":120,"difficulty":90,"goals":[{"Type":0,"Target":50,"Tag":"Buildings"},{"Type":1,"Target":20,"Tag":"Medium
+      Size"}]}}'
+    databasePath: 
+    databaseIndex: -1
+  - assetPath: Assets/ProjectName/Levels/Content/Level_028.asset
+    json: '{"MonoBehaviour":{"m_Enabled":true,"m_EditorHideFlags":0,"m_Name":"Level_028","m_EditorClassIdentifier":"","stableId":"90d72cc19cbc4bb89ef5791b3dda75f7","timeLimitSeconds":120,"difficulty":90,"goals":[{"Type":0,"Target":50,"Tag":"Buildings"},{"Type":1,"Target":20,"Tag":"Medium
+      Size"}]}}'
+    databasePath: 
+    databaseIndex: -1
+  - assetPath: Assets/ProjectName/Levels/Content/Level_029.asset
+    json: '{"MonoBehaviour":{"m_Enabled":true,"m_EditorHideFlags":0,"m_Name":"Level_029","m_EditorClassIdentifier":"","stableId":"72f4948148b84b928e558a20524c3813","timeLimitSeconds":120,"difficulty":90,"goals":[{"Type":0,"Target":50,"Tag":"Buildings"},{"Type":1,"Target":20,"Tag":"Medium
+      Size"}]}}'
+    databasePath: 
+    databaseIndex: -1
+  - assetPath: Assets/ProjectName/Levels/Content/Level_030.asset
+    json: '{"MonoBehaviour":{"m_Enabled":true,"m_EditorHideFlags":0,"m_Name":"Level_030","m_EditorClassIdentifier":"","stableId":"c55120e2a2744c4fba70b9c9f7204b98","timeLimitSeconds":120,"difficulty":90,"goals":[{"Type":0,"Target":50,"Tag":"Buildings"},{"Type":1,"Target":20,"Tag":"Medium
+      Size"}]}}'
+    databasePath: 
+    databaseIndex: -1
+  - assetPath: Assets/ProjectName/Levels/Content/Level_031.asset
+    json: '{"MonoBehaviour":{"m_Enabled":true,"m_EditorHideFlags":0,"m_Name":"Level_031","m_EditorClassIdentifier":"","stableId":"85e313d05e9c44aeb455a281f5a67312","timeLimitSeconds":120,"difficulty":90,"goals":[{"Type":0,"Target":50,"Tag":"Buildings"},{"Type":1,"Target":20,"Tag":"Medium
+      Size"}]}}'
+    databasePath: 
+    databaseIndex: -1
+  - assetPath: Assets/ProjectName/Levels/Content/Level_032.asset
+    json: '{"MonoBehaviour":{"m_Enabled":true,"m_EditorHideFlags":0,"m_Name":"Level_032","m_EditorClassIdentifier":"","stableId":"5723e906c53a47a4adb342e2cd99c6a9","timeLimitSeconds":120,"difficulty":90,"goals":[{"Type":0,"Target":50,"Tag":"Buildings"},{"Type":1,"Target":20,"Tag":"Medium
+      Size"}]}}'
+    databasePath: 
+    databaseIndex: -1
+  - assetPath: Assets/ProjectName/Levels/Content/Level_033.asset
+    json: '{"MonoBehaviour":{"m_Enabled":true,"m_EditorHideFlags":0,"m_Name":"Level_033","m_EditorClassIdentifier":"","stableId":"780a43263e8f455495a4c51b217c3199","timeLimitSeconds":120,"difficulty":90,"goals":[{"Type":0,"Target":50,"Tag":"Buildings"},{"Type":1,"Target":20,"Tag":"Medium
+      Size"}]}}'
+    databasePath: 
+    databaseIndex: -1
+  - assetPath: Assets/ProjectName/Levels/Content/Level_034.asset
+    json: '{"MonoBehaviour":{"m_Enabled":true,"m_EditorHideFlags":0,"m_Name":"Level_034","m_EditorClassIdentifier":"","stableId":"0f388d5994274e93a9e6f9855aecd493","timeLimitSeconds":120,"difficulty":90,"goals":[{"Type":0,"Target":50,"Tag":"Buildings"},{"Type":1,"Target":20,"Tag":"Medium
+      Size"}]}}'
+    databasePath: 
+    databaseIndex: -1
+  - assetPath: Assets/ProjectName/Levels/Content/Level_035.asset
+    json: '{"MonoBehaviour":{"m_Enabled":true,"m_EditorHideFlags":0,"m_Name":"Level_035","m_EditorClassIdentifier":"","stableId":"647afc3f31514c91ab28e43535e3e05c","timeLimitSeconds":120,"difficulty":90,"goals":[{"Type":0,"Target":50,"Tag":"Buildings"},{"Type":1,"Target":20,"Tag":"Medium
+      Size"}]}}'
+    databasePath: 
+    databaseIndex: -1
+  - assetPath: Assets/ProjectName/Levels/Content/Level_036.asset
+    json: '{"MonoBehaviour":{"m_Enabled":true,"m_EditorHideFlags":0,"m_Name":"Level_036","m_EditorClassIdentifier":"","stableId":"44416e538b4c41b4ac9484f92b8036aa","timeLimitSeconds":120,"difficulty":90,"goals":[{"Type":0,"Target":50,"Tag":"Buildings"},{"Type":1,"Target":20,"Tag":"Medium
+      Size"}]}}'
+    databasePath: 
+    databaseIndex: -1
+  - assetPath: Assets/ProjectName/Levels/Content/Level_037.asset
+    json: '{"MonoBehaviour":{"m_Enabled":true,"m_EditorHideFlags":0,"m_Name":"Level_037","m_EditorClassIdentifier":"","stableId":"4f3f7c909c1d4db1b8757367ff3cce36","timeLimitSeconds":120,"difficulty":90,"goals":[{"Type":0,"Target":50,"Tag":"Buildings"},{"Type":1,"Target":20,"Tag":"Medium
+      Size"}]}}'
+    databasePath: 
+    databaseIndex: -1
+  - assetPath: Assets/ProjectName/Levels/Content/Level_038.asset
+    json: '{"MonoBehaviour":{"m_Enabled":true,"m_EditorHideFlags":0,"m_Name":"Level_038","m_EditorClassIdentifier":"","stableId":"302f1f10bc52438fa4ccc6c8a2628c4a","timeLimitSeconds":120,"difficulty":90,"goals":[{"Type":0,"Target":50,"Tag":"Buildings"},{"Type":1,"Target":20,"Tag":"Medium
+      Size"}]}}'
+    databasePath: 
+    databaseIndex: -1
+  - assetPath: Assets/ProjectName/Levels/Content/Level_039.asset
+    json: '{"MonoBehaviour":{"m_Enabled":true,"m_EditorHideFlags":0,"m_Name":"Level_039","m_EditorClassIdentifier":"","stableId":"0384bdb24d954965806987fbddd5f706","timeLimitSeconds":120,"difficulty":90,"goals":[{"Type":0,"Target":50,"Tag":"Buildings"},{"Type":1,"Target":20,"Tag":"Medium
+      Size"}]}}'
+    databasePath: 
+    databaseIndex: -1
+  - assetPath: Assets/ProjectName/Levels/Content/Level_040.asset
+    json: '{"MonoBehaviour":{"m_Enabled":true,"m_EditorHideFlags":0,"m_Name":"Level_040","m_EditorClassIdentifier":"","stableId":"e090869daba74e9dbdd81b3a99ef0dda","timeLimitSeconds":120,"difficulty":90,"goals":[{"Type":0,"Target":50,"Tag":"Buildings"},{"Type":1,"Target":20,"Tag":"Medium
+      Size"}]}}'
+    databasePath: 
+    databaseIndex: -1
+  - assetPath: Assets/ProjectName/Levels/Content/Level_041.asset
+    json: '{"MonoBehaviour":{"m_Enabled":true,"m_EditorHideFlags":0,"m_Name":"Level_041","m_EditorClassIdentifier":"","stableId":"bcd70beec91e412bbc74ad61b9970467","timeLimitSeconds":120,"difficulty":90,"goals":[{"Type":0,"Target":50,"Tag":"Buildings"},{"Type":1,"Target":20,"Tag":"Medium
+      Size"}]}}'
+    databasePath: 
+    databaseIndex: -1
+  - assetPath: Assets/ProjectName/Levels/Content/Level_042.asset
+    json: '{"MonoBehaviour":{"m_Enabled":true,"m_EditorHideFlags":0,"m_Name":"Level_042","m_EditorClassIdentifier":"","stableId":"0529996d92a14fefb56b794635cde41e","timeLimitSeconds":120,"difficulty":90,"goals":[{"Type":0,"Target":50,"Tag":"Buildings"},{"Type":1,"Target":20,"Tag":"Medium
+      Size"}]}}'
+    databasePath: 
+    databaseIndex: -1
+  - assetPath: Assets/ProjectName/Levels/Content/Level_043.asset
+    json: '{"MonoBehaviour":{"m_Enabled":true,"m_EditorHideFlags":0,"m_Name":"Level_043","m_EditorClassIdentifier":"","stableId":"fa878ff8fe214bd8b5a175af863cbd49","timeLimitSeconds":120,"difficulty":90,"goals":[{"Type":0,"Target":50,"Tag":"Buildings"},{"Type":1,"Target":20,"Tag":"Medium
+      Size"}]}}'
+    databasePath: 
+    databaseIndex: -1
+  - assetPath: Assets/ProjectName/Levels/Content/Level_044.asset
+    json: '{"MonoBehaviour":{"m_Enabled":true,"m_EditorHideFlags":0,"m_Name":"Level_044","m_EditorClassIdentifier":"","stableId":"bc2e4f171b9e463f98465c934ced2fcc","timeLimitSeconds":120,"difficulty":90,"goals":[{"Type":0,"Target":50,"Tag":"Buildings"},{"Type":1,"Target":20,"Tag":"Medium
+      Size"}]}}'
+    databasePath: 
+    databaseIndex: -1
+  - assetPath: Assets/ProjectName/Levels/Content/Level_045.asset
+    json: '{"MonoBehaviour":{"m_Enabled":true,"m_EditorHideFlags":0,"m_Name":"Level_045","m_EditorClassIdentifier":"","stableId":"fcfd315637ca456886addb3a0c7e414d","timeLimitSeconds":120,"difficulty":90,"goals":[{"Type":0,"Target":50,"Tag":"Buildings"},{"Type":1,"Target":20,"Tag":"Medium
+      Size"}]}}'
+    databasePath: 
+    databaseIndex: -1
+  - assetPath: Assets/ProjectName/Levels/Content/Level_046.asset
+    json: '{"MonoBehaviour":{"m_Enabled":true,"m_EditorHideFlags":0,"m_Name":"Level_046","m_EditorClassIdentifier":"","stableId":"4c4e799b78924d3fa213a7b09771e9fd","timeLimitSeconds":120,"difficulty":90,"goals":[{"Type":0,"Target":50,"Tag":"Buildings"},{"Type":1,"Target":20,"Tag":"Medium
+      Size"}]}}'
+    databasePath: 
+    databaseIndex: -1
+  - assetPath: Assets/ProjectName/Levels/Content/Level_047.asset
+    json: '{"MonoBehaviour":{"m_Enabled":true,"m_EditorHideFlags":0,"m_Name":"Level_047","m_EditorClassIdentifier":"","stableId":"035e2010a1ca43108fb4a9845bb82022","timeLimitSeconds":120,"difficulty":90,"goals":[{"Type":0,"Target":50,"Tag":"Buildings"},{"Type":1,"Target":20,"Tag":"Medium
+      Size"}]}}'
+    databasePath: 
+    databaseIndex: -1
+  - assetPath: Assets/ProjectName/Levels/Content/Level_048.asset
+    json: '{"MonoBehaviour":{"m_Enabled":true,"m_EditorHideFlags":0,"m_Name":"Level_048","m_EditorClassIdentifier":"","stableId":"f49027915f674fcb8db2e7ae0beb89f3","timeLimitSeconds":120,"difficulty":90,"goals":[{"Type":0,"Target":50,"Tag":"Buildings"},{"Type":1,"Target":20,"Tag":"Medium
+      Size"}]}}'
+    databasePath: 
+    databaseIndex: -1
+  - assetPath: Assets/ProjectName/Levels/Content/Level_049.asset
+    json: '{"MonoBehaviour":{"m_Enabled":true,"m_EditorHideFlags":0,"m_Name":"Level_049","m_EditorClassIdentifier":"","stableId":"f2e679d18edf49939686f9d494c2dffe","timeLimitSeconds":120,"difficulty":90,"goals":[{"Type":0,"Target":50,"Tag":"Buildings"},{"Type":1,"Target":20,"Tag":"Medium
+      Size"}]}}'
+    databasePath: 
+    databaseIndex: -1
+  - assetPath: Assets/ProjectName/Levels/Content/Level_050.asset
+    json: '{"MonoBehaviour":{"m_Enabled":true,"m_EditorHideFlags":0,"m_Name":"Level_050","m_EditorClassIdentifier":"","stableId":"84e8eb5885944023a288610e43dfd6b9","timeLimitSeconds":120,"difficulty":90,"goals":[{"Type":0,"Target":50,"Tag":"Buildings"},{"Type":1,"Target":20,"Tag":"Medium
+      Size"}]}}'
+    databasePath: 
+    databaseIndex: -1
+  - assetPath: Assets/ProjectName/Levels/Content/Level_051.asset
+    json: '{"MonoBehaviour":{"m_Enabled":true,"m_EditorHideFlags":0,"m_Name":"Level_051","m_EditorClassIdentifier":"","stableId":"73197f91f7ca4e25ae8ea729cabf68ba","timeLimitSeconds":120,"difficulty":90,"goals":[{"Type":0,"Target":50,"Tag":"Buildings"},{"Type":1,"Target":20,"Tag":"Medium
+      Size"}]}}'
+    databasePath: 
+    databaseIndex: -1
+  - assetPath: Assets/ProjectName/Levels/Content/Level_052.asset
+    json: '{"MonoBehaviour":{"m_Enabled":true,"m_EditorHideFlags":0,"m_Name":"Level_052","m_EditorClassIdentifier":"","stableId":"4a67c3cc1f374da1babcf06c289ab47d","timeLimitSeconds":120,"difficulty":90,"goals":[{"Type":0,"Target":50,"Tag":"Buildings"},{"Type":1,"Target":20,"Tag":"Medium
+      Size"}]}}'
+    databasePath: 
+    databaseIndex: -1
+  - assetPath: Assets/ProjectName/Levels/Content/Level_053.asset
+    json: '{"MonoBehaviour":{"m_Enabled":true,"m_EditorHideFlags":0,"m_Name":"Level_053","m_EditorClassIdentifier":"","stableId":"1b81b59610984cd6b04ab66ff3e17179","timeLimitSeconds":120,"difficulty":90,"goals":[{"Type":0,"Target":50,"Tag":"Buildings"},{"Type":1,"Target":20,"Tag":"Medium
+      Size"}]}}'
+    databasePath: 
+    databaseIndex: -1
+  - assetPath: Assets/ProjectName/Levels/Content/Level_054.asset
+    json: '{"MonoBehaviour":{"m_Enabled":true,"m_EditorHideFlags":0,"m_Name":"Level_054","m_EditorClassIdentifier":"","stableId":"c0ffdde90c68414b988414b5442d8f29","timeLimitSeconds":120,"difficulty":90,"goals":[{"Type":0,"Target":50,"Tag":"Buildings"},{"Type":1,"Target":20,"Tag":"Medium
+      Size"}]}}'
+    databasePath: 
+    databaseIndex: -1
+  - assetPath: Assets/ProjectName/Levels/Content/Level_055.asset
+    json: '{"MonoBehaviour":{"m_Enabled":true,"m_EditorHideFlags":0,"m_Name":"Level_055","m_EditorClassIdentifier":"","stableId":"adec4f2da13d490eb2104b6b0864a7c0","timeLimitSeconds":120,"difficulty":90,"goals":[{"Type":0,"Target":50,"Tag":"Buildings"},{"Type":1,"Target":20,"Tag":"Medium
+      Size"}]}}'
+    databasePath: 
+    databaseIndex: -1
+  - assetPath: Assets/ProjectName/Levels/Content/Level_056.asset
+    json: '{"MonoBehaviour":{"m_Enabled":true,"m_EditorHideFlags":0,"m_Name":"Level_056","m_EditorClassIdentifier":"","stableId":"73ed2d471a6349bc94049fc977a3f35e","timeLimitSeconds":120,"difficulty":90,"goals":[{"Type":0,"Target":50,"Tag":"Buildings"},{"Type":1,"Target":20,"Tag":"Medium
+      Size"}]}}'
+    databasePath: 
+    databaseIndex: -1
+  deleted: []
