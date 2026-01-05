@@ -1,4 +1,6 @@
 ﻿#if UNITY_EDITOR
+using System.Collections.Generic;
+using System.Linq;
 using UnityEditor;
 using UnityEditorInternal;
 using UnityEngine;
@@ -10,10 +12,13 @@ namespace Game.Levels.EditorTool
 		private LevelManagementContext _ctx;
 		private LevelManagementController _controller;
 
+		private bool _firstRefresh;
+
 		public static void ShowWindow()
 		{
 			var w = GetWindow<LevelManagementWindow>("Level Management");
 			w.minSize = new Vector2(900, 550);
+			w._firstRefresh = false;
 			w.Show();
 		}
 
@@ -51,11 +56,33 @@ namespace Game.Levels.EditorTool
 		{
 			LevelTopBarView.Draw(_ctx, _controller);
 			LevelWelcomeView.Draw(_ctx, _controller);
+
+			if (_ctx.Database == null)
+			{
+				EditorGUILayout.HelpBox("Select a LevelDatabase asset to start.", MessageType.Info);
+				return;
+			}
+
+			if (!_firstRefresh)
+			{
+				Debug.Log("Refreshing LevelManagementWindow");
+				_controller.RefreshLevels();
+				_controller.Validate();
+				_firstRefresh = true;
+			}
+
 			LevelCreateOptionsView.Draw(_ctx);
 
 			EditorGUILayout.BeginHorizontal();
-			LevelListView.Draw(_ctx, _controller, Repaint);
+
+// Сначала готовим ReorderableList, чтобы таблица могла войти в reorder-mode
+			LevelTableView.EnsureDbReorderableList(_ctx, _controller, Repaint);
+
+// Теперь рисуем таблицу
+			LevelTableView.Draw(_ctx, _controller, Repaint);
+
 			LevelInspectorView.Draw(_ctx, _controller);
+
 			EditorGUILayout.EndHorizontal();
 		}
 

@@ -28,7 +28,7 @@ namespace Game.Levels.EditorTool
 		{
 			_ctx.AllLevels = LevelAssetIndex.FindAllLevels();
 
-			foreach (LevelConfig lvl in _ctx.AllLevels)
+			foreach (var lvl in _ctx.AllLevels)
 				LevelStableIdUtility.EnsureStableId(lvl);
 
 			ApplyFilter();
@@ -36,16 +36,49 @@ namespace Game.Levels.EditorTool
 
 		public void ApplyFilter()
 		{
+			// 1) Берём базовый список в правильном порядке (DB -> потом сироты)
+			var ordered = BuildOrderedLevels();
+
+			// 2) Применяем поиск
 			if (string.IsNullOrWhiteSpace(_ctx.Search))
 			{
-				_ctx.FilteredLevels = _ctx.AllLevels.Where(l => l != null).ToList();
+				_ctx.FilteredLevels = ordered;
 				return;
 			}
 
 			string s = _ctx.Search.ToLowerInvariant();
-			_ctx.FilteredLevels = _ctx.AllLevels
+			_ctx.FilteredLevels = ordered
 				.Where(l => l != null && l.name.ToLowerInvariant().Contains(s))
 				.ToList();
+		}
+
+		private List<LevelConfig> BuildOrderedLevels()
+		{
+			// если DB не выбран — оставляем как есть (то, что вернул индексатор)
+			var all = _ctx.AllLevels.Where(l => l != null).Distinct().ToList();
+
+			if (_ctx.Database == null || _ctx.Database.orderedLevels == null || _ctx.Database.orderedLevels.Count == 0)
+				return all;
+
+			// 1) DB order
+			var result = new List<LevelConfig>(_ctx.Database.orderedLevels.Count + 32);
+			var inDb = new HashSet<LevelConfig>();
+
+			foreach (var lvl in _ctx.Database.orderedLevels)
+			{
+				if (lvl == null) continue;
+				if (inDb.Add(lvl))
+					result.Add(lvl);
+			}
+
+			// 2) Orphans (assets not in DB) — добавляем в конец
+			// Можно сортировать по имени, чтобы было стабильно.
+			var orphans = all.Where(l => l != null && !inDb.Contains(l))
+				.OrderBy(l => l.name, StringComparer.OrdinalIgnoreCase);
+
+			result.AddRange(orphans);
+
+			return result;
 		}
 
 		public void Validate()
@@ -559,14 +592,21 @@ namespace Game.Levels.EditorTool
 		// Goals apply (used by UI)
 		// -------------------------
 
-		public void ApplyGoalsToLevels(List<LevelConfig> levels, List<LevelGoal> goals)
+		public void ApplyGoalsPerLevel(Dictionary<LevelConfig, List<LevelGoal>> map)
 		{
-			if (levels == null || levels.Count == 0) return;
+			if (map == null || map.Count == 0) return;
 
-			Undo.RecordObjects(levels.Cast<Object>().ToArray(), "Apply Goals To Levels");
+			var levels = map.Keys.Where(x => x != null).ToList();
+			if (levels.Count == 0) return;
 
-			foreach (LevelConfig lvl in levels)
+			Undo.RecordObjects(levels.Cast<UnityEngine.Object>().ToArray(), "Apply Goals (Per Level)");
+
+			foreach (var kv in map)
 			{
+				var lvl = kv.Key;
+				if (lvl == null) continue;
+
+				var goals = kv.Value ?? new List<LevelGoal>();
 				lvl.goals ??= new List<LevelGoal>(3);
 				lvl.goals.Clear();
 

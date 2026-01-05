@@ -37,8 +37,20 @@ namespace Game.Levels.EditorTool
 
 		// UI-only list (kept here for convenience; can be moved to Window if you prefer)
 		[NonSerialized] public ReorderableList PresetGoalsList;
-
+		[NonSerialized] public ReorderableList DbOrderList;
+		[NonSerialized] public LevelDatabase DbOrderListFor; // чтобы понимать, для какой БД построено
+		
 		public bool IsSelected(LevelConfig lvl) => lvl != null && SelectedStableIds.Contains(lvl.StableId);
+
+		public enum IssuesFilterMode
+		{
+			All,
+			WithIssues,
+			ErrorsOnly,
+			WarningsOnly
+		}
+
+		public IssuesFilterMode IssuesFilter = IssuesFilterMode.All;
 	}
 }
 #endif

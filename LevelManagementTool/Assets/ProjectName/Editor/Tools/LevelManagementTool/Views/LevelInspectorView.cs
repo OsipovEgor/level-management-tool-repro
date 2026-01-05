@@ -34,7 +34,10 @@ namespace Game.Levels.EditorTool
 			EditorGUILayout.EndVertical();
 		}
 
-		private static void DrawInspectorForSelected(LevelManagementContext ctx, LevelManagementController controller, List<LevelConfig> targets)
+		private static void DrawInspectorForSelected(
+			LevelManagementContext ctx,
+			LevelManagementController controller,
+			List<LevelConfig> targets)
 		{
 			if (targets == null || targets.Count == 0)
 			{
@@ -52,16 +55,41 @@ namespace Game.Levels.EditorTool
 			SerializedObject so = new(targets.ToArray());
 			so.Update();
 
+			if (targets.Count > 1)
+			{
+				using (new EditorGUILayout.HorizontalScope())
+				{
+					if (GUILayout.Button("Edit Level(s)...", GUILayout.Width(160)))
+					{
+						LevelEditPromptWindow.Show("Edit Levels", targets, onApplied: controller.Validate);
+					}
+
+					if (GUILayout.Button("Edit Goals...", GUILayout.Width(140)))
+					{
+						LevelGoalsPromptWindow.ShowMulti(
+							"Edit Goals",
+							targets,
+							onOk: map => controller.ApplyGoalsPerLevel(map),
+							onCancel: () => { },
+							defaultEditSameForAll: true,
+							defaultShowPerLevelGoals: true
+						);
+					}
+				}
+			}
+
 			DrawAutoProperties(so);
 			DrawGoalsForTargets(controller, targets);
 
-			if (!so.ApplyModifiedProperties())
-				return;
+			bool changed = so.ApplyModifiedProperties();
 
-			foreach (LevelConfig t in targets)
-				EditorUtility.SetDirty(t);
+			if (changed)
+			{
+				foreach (LevelConfig t in targets)
+					EditorUtility.SetDirty(t);
 
-			controller.Validate();
+				controller.Validate();
+			}
 		}
 
 		private static void DrawAutoProperties(SerializedObject so)
@@ -92,32 +120,31 @@ namespace Game.Levels.EditorTool
 				return;
 			}
 
-			if (AllGoalsSame(targets))
-			{
-				List<LevelGoal> temp = new(targets[0].goals ?? new List<LevelGoal>());
-				DrawGoalsEditorInline(temp);
-
-				if (GUILayout.Button("Apply Goals To All", GUILayout.Width(160)))
-					controller.ApplyGoalsToLevels(targets, temp);
-			}
-			else
-			{
-				EditorGUILayout.HelpBox("Multiple Values", MessageType.None);
-
-				if (!GUILayout.Button("Edit Goals & Apply To All", GUILayout.Width(220)))
-					return;
-
-				List<LevelGoal> baseGoals = targets[0].goals != null
-					? new List<LevelGoal>(targets[0].goals)
-					: new List<LevelGoal>(3);
-
-				LevelGoalsPromptWindow.Show(
-					title: "Edit Goals",
-					initial: baseGoals,
-					onOk: newGoals => controller.ApplyGoalsToLevels(targets, newGoals),
-					onCancel: () => { }
-				);
-			}
+			// if (AllGoalsSame(targets))
+			// {
+			// 	List<LevelGoal> temp = new(targets[0].goals ?? new List<LevelGoal>());
+			// 	DrawGoalsEditorInline(temp);
+			//
+			// 	if (GUILayout.Button("Apply Goals To All", GUILayout.Width(160)))
+			// 		controller.ApplyGoalsToLevels(targets, temp);
+			// }
+			// else
+			// {
+			// 	EditorGUILayout.LabelField("Goals", EditorStyles.boldLabel);
+			// 	EditorGUILayout.HelpBox("Multiple Values", MessageType.None);
+			//
+			// 	if (!GUILayout.Button("Edit Goals & Apply To All", GUILayout.Width(220)))
+			// 		return;
+			//
+			// 	LevelGoalsPromptWindow.ShowMulti(
+			// 		title: "Edit Goals",
+			// 		targets: targets,
+			// 		onOk: controller.ApplyGoalsPerLevel,
+			// 		onCancel: () => { },
+			// 		defaultEditSameForAll: true,
+			// 		defaultShowPerLevelGoals: true
+			// 	);
+			// }
 		}
 
 		private static void DrawLevelGoalsInspector(LevelConfig lvl)
