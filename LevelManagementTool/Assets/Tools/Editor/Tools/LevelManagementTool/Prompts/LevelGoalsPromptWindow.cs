@@ -27,7 +27,7 @@ namespace Game.Levels.EditorTool
 		private bool _editSameForAll = true;
 		private List<LevelGoal> _commonGoals;
 
-		private bool _showPerLevelGoals = true; // твоя “галочка держать перед глазами”
+		private bool _showPerLevelGoals = true; // “галочка держать перед глазами”
 		private Vector2 _scroll;
 
 		// ---------------- Public API ----------------
@@ -38,7 +38,8 @@ namespace Game.Levels.EditorTool
 			w.titleContent = new GUIContent(title);
 
 			w._isMulti = false;
-			w._singleGoals = SanitizeGoalsCopy(initial);
+			// IMPORTANT: deep copy to avoid mutating source goals even if LevelGoal is a class
+			w._singleGoals = DeepCopyGoals(initial);
 
 			w._onOkSingle = onOk;
 			w._onCancelSingle = onCancel;
@@ -74,7 +75,7 @@ namespace Game.Levels.EditorTool
 			w._showPerLevelGoals = defaultShowPerLevelGoals;
 
 			w.BuildGoalsCacheFromTargets();
-			w._commonGoals = SanitizeGoalsCopy(w.GetGoalsForTarget(w._targets[0]));
+			w._commonGoals = DeepCopyGoals(w.GetGoalsForTarget(w._targets[0]));
 
 			w.minSize = new Vector2(980, 520);
 			w.ShowModalUtility();
@@ -129,7 +130,7 @@ namespace Game.Levels.EditorTool
 				{
 					_editSameForAll = newSame;
 					if (_editSameForAll)
-						_commonGoals = SanitizeGoalsCopy(GetGoalsForTarget(_targets[0]));
+						_commonGoals = DeepCopyGoals(GetGoalsForTarget(_targets[0]));
 				}
 
 				GUILayout.Space(14);
@@ -282,11 +283,17 @@ namespace Game.Levels.EditorTool
 			using (new EditorGUI.DisabledScope(goals.Count >= MaxGoals))
 			{
 				if (GUILayout.Button("+ Add Goal", GUILayout.Width(110)))
-					goals.Add(new LevelGoal { Type = GoalType.Collect, Target = 1, Tag = "" });
+					goals.Add(NewDefaultGoal());
 			}
 
 			if (goals.Count > MaxGoals)
 				goals.RemoveRange(MaxGoals, goals.Count - MaxGoals);
+		}
+
+		private static LevelGoal NewDefaultGoal()
+		{
+			// Works for struct or class; for class you need a public parameterless ctor.
+			return new LevelGoal { Type = GoalType.Collect, Target = 1, Tag = "" };
 		}
 
 		// ---------------- Footer ----------------
@@ -306,7 +313,8 @@ namespace Game.Levels.EditorTool
 
 				if (GUILayout.Button("OK", GUILayout.Width(110)))
 				{
-					_onOkSingle?.Invoke(new List<LevelGoal>(_singleGoals));
+					// IMPORTANT: deep copy on output too
+					_onOkSingle?.Invoke(DeepCopyGoals(_singleGoals));
 					Close();
 				}
 			}
@@ -345,7 +353,7 @@ namespace Game.Levels.EditorTool
 			foreach (var lvl in _targets)
 			{
 				if (lvl == null) continue;
-				_goalsByStableId[lvl.StableId] = SanitizeGoalsCopy(lvl.goals);
+				_goalsByStableId[lvl.StableId] = DeepCopyGoals(lvl.goals);
 			}
 		}
 
@@ -356,14 +364,14 @@ namespace Game.Levels.EditorTool
 			if (_goalsByStableId != null && _goalsByStableId.TryGetValue(lvl.StableId, out var goals))
 				return goals;
 
-			return SanitizeGoalsCopy(lvl.goals);
+			return DeepCopyGoals(lvl.goals);
 		}
 
 		private void SetGoalsForTarget(LevelConfig lvl, List<LevelGoal> goals)
 		{
 			if (lvl == null) return;
 			_goalsByStableId ??= new Dictionary<string, List<LevelGoal>>(StringComparer.OrdinalIgnoreCase);
-			_goalsByStableId[lvl.StableId] = SanitizeGoalsCopy(goals);
+			_goalsByStableId[lvl.StableId] = DeepCopyGoals(goals);
 		}
 
 		private Dictionary<LevelConfig, List<LevelGoal>> BuildResultMapForOk()
@@ -372,16 +380,16 @@ namespace Game.Levels.EditorTool
 
 			if (_editSameForAll)
 			{
-				var common = SanitizeGoalsCopy(_commonGoals);
+				var common = DeepCopyGoals(_commonGoals);
 				foreach (var lvl in _targets)
-					if (lvl != null) map[lvl] = SanitizeGoalsCopy(common);
+					if (lvl != null) map[lvl] = DeepCopyGoals(common);
 				return map;
 			}
 
 			foreach (var lvl in _targets)
 			{
 				if (lvl == null) continue;
-				map[lvl] = SanitizeGoalsCopy(GetGoalsForTarget(lvl));
+				map[lvl] = DeepCopyGoals(GetGoalsForTarget(lvl));
 			}
 
 			return map;
@@ -400,11 +408,29 @@ namespace Game.Levels.EditorTool
 			return true;
 		}
 
-		private static List<LevelGoal> SanitizeGoalsCopy(List<LevelGoal> src)
+		/// <summary>
+		/// Deep copy goals to avoid mutating original assets on Cancel (important if LevelGoal is a class).
+		/// </summary>
+		private static List<LevelGoal> DeepCopyGoals(List<LevelGoal> src)
 		{
-			var g = src != null ? new List<LevelGoal>(src) : new List<LevelGoal>(MaxGoals);
-			if (g.Count > MaxGoals) g.RemoveRange(MaxGoals, g.Count - MaxGoals);
-			return g;
+			var list = new List<LevelGoal>(MaxGoals);
+			if (src == null) return list;
+
+			for (int i = 0; i < src.Count && i < MaxGoals; i++)
+			{
+				var g = src[i];
+
+				// If LevelGoal is a struct: this is just a value copy.
+				// If LevelGoal is a class: we create a new instance.
+				list.Add(new LevelGoal
+				{
+					Type = g.Type,
+					Target = g.Target,
+					Tag = g.Tag ?? ""
+				});
+			}
+
+			return list;
 		}
 
 		private static bool GoalsEqual(List<LevelGoal> a, List<LevelGoal> b)

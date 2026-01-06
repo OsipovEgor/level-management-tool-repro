@@ -16,13 +16,13 @@ namespace Game.Levels.EditorTool
 			{
 				EditorGUI.BeginChangeCheck();
 
-				ctx.Settings.autoNamingEnabled =
-					EditorGUILayout.ToggleLeft("Auto naming enabled", ctx.Settings.autoNamingEnabled);
+				LevelToolSettings.autoNamingEnabled =
+					EditorGUILayout.ToggleLeft("Auto naming enabled", LevelToolSettings.autoNamingEnabled);
 
-				using (new EditorGUI.DisabledScope(!ctx.Settings.autoNamingEnabled))
+				using (new EditorGUI.DisabledScope(!LevelToolSettings.autoNamingEnabled))
 				{
-					ctx.Settings.levelNameTemplate =
-						EditorGUILayout.TextField("Name template", ctx.Settings.levelNameTemplate);
+					LevelToolSettings.levelNameTemplate =
+						EditorGUILayout.TextField("Name template", LevelToolSettings.levelNameTemplate);
 
 					EditorGUILayout.HelpBox(
 						"Template supports {index} or {index:000}. Example: Level_{index:000}",
@@ -43,11 +43,10 @@ namespace Game.Levels.EditorTool
 
 				if (EditorGUI.EndChangeCheck())
 				{
-					EditorUtility.SetDirty(ctx.Settings);
 					AssetDatabase.SaveAssets();
 				}
 
-				if (ctx.CreateCount > 1 && (ctx.Settings == null || !ctx.Settings.autoNamingEnabled))
+				if (ctx.CreateCount > 1 && (!LevelToolSettings.autoNamingEnabled))
 				{
 					EditorGUILayout.HelpBox(
 						"Batch create (count > 1) requires Auto naming enabled." +

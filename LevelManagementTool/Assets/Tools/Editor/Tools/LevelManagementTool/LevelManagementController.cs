@@ -20,8 +20,7 @@ namespace Game.Levels.EditorTool
 
 		public void LoadSettings()
 		{
-			_ctx.Settings = LevelToolSettings.GetOrCreate();
-			_ctx.ShowWelcome = _ctx.Settings.showWelcomeOnOpen;
+			_ctx.ShowWelcome = LevelToolSettings.showWelcomeOnOpen;
 		}
 
 		public void RefreshLevels()
@@ -152,9 +151,7 @@ namespace Game.Levels.EditorTool
 		{
 			_ctx.ShowWelcome = false;
 
-			LevelToolSettings s = LevelToolSettings.GetOrCreate();
-			s.showWelcomeOnOpen = false;
-			EditorUtility.SetDirty(s);
+			LevelToolSettings.showWelcomeOnOpen = false;
 			AssetDatabase.SaveAssets();
 		}
 
@@ -167,7 +164,7 @@ namespace Game.Levels.EditorTool
 			string folder = LevelAssetCreationUtility.DefaultLevelsFolder;
 			_ = LevelAssetCreationUtility.GetUniquePath(folder, "Temp"); // ensure folder exists
 
-			if (_ctx.Settings != null && _ctx.Settings.autoNamingEnabled)
+			if (LevelToolSettings.autoNamingEnabled)
 			{
 				CreateMultipleLevelsAutoNamed(_ctx.CreateCount);
 				return;
@@ -208,33 +205,6 @@ namespace Game.Levels.EditorTool
 					onCancel: () => { }
 				);
 			}
-		}
-
-		public void DuplicateLevel(LevelConfig source)
-		{
-			if (source == null) return;
-
-			string srcPath = AssetDatabase.GetAssetPath(source);
-			string folder = Path.GetDirectoryName(srcPath)?.Replace('\\', '/') ??
-							LevelAssetCreationUtility.DefaultLevelsFolder;
-
-			if (_ctx.Settings != null && _ctx.Settings.autoNamingEnabled)
-			{
-				string newName = LevelAssetCreationUtility.GenerateNextLevelName(_ctx.Settings);
-				DuplicateLevelInternal(source, folder, newName);
-				return;
-			}
-
-			HashSet<string> existingNames = LevelAssetIndex.CollectAllLevelAssetNames();
-
-			LevelNamePromptWindow.Show(
-				title: "Duplicate Level",
-				folder: folder,
-				initialName: source.name + "_Copy",
-				existingNames: existingNames,
-				onOk: (levelName) => { DuplicateLevelInternal(source, folder, levelName); },
-				onCancel: () => { }
-			);
 		}
 
 		public void DeleteLevelsBatch(List<LevelConfig> levels)
@@ -453,7 +423,7 @@ namespace Game.Levels.EditorTool
 
 			for (int i = 0; i < count; i++)
 			{
-				string levelName = LevelAssetCreationUtility.GenerateNextLevelName(_ctx.Settings);
+				string levelName = LevelAssetCreationUtility.GenerateNextLevelName();
 				lastCreated = CreateLevelAssetWithPreset(folder, levelName, recordInBridge: true, bridge: bridge);
 				anyCreated |= lastCreated != null;
 			}

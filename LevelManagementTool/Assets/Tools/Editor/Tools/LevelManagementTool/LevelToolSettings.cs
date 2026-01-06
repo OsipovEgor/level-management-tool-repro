@@ -1,62 +1,62 @@
-﻿using System.IO;
+﻿#if UNITY_EDITOR
 using UnityEditor;
-using UnityEngine;
 
 namespace Game.Levels.EditorTool
 {
-	public class LevelToolSettings : ScriptableObject
+	/// <summary>
+	/// Per-user editor settings stored in EditorPrefs (not shared in project).
+	/// </summary>
+	public static class LevelToolSettings
 	{
-		public bool showWelcomeOnOpen = true;
-		public bool autoSyncOnOpen = true;
+		private const string KeyPrefix = "Game.Levels.EditorTool.LevelToolSettings.";
 
-		private const string AssetPath = "Assets/ProjectName/Levels/Editor/LevelToolSettings.asset";
+		private const string KeyShowWelcomeOnOpen = KeyPrefix + "showWelcomeOnOpen";
+		private const string KeyAutoSyncOnOpen    = KeyPrefix + "autoSyncOnOpen";
+		private const string KeyAutoNamingEnabled = KeyPrefix + "autoNamingEnabled";
+		private const string KeyLevelNameTemplate = KeyPrefix + "levelNameTemplate";
 
-		public bool autoNamingEnabled = true;
+		// Defaults
+		public const bool DefaultShowWelcomeOnOpen = true;
+		public const bool DefaultAutoSyncOnOpen    = true;
+		public const bool DefaultAutoNamingEnabled = true;
 
-// Template supports {index} or {index:000}
-		public string levelNameTemplate = "Level_{index:000}";
-		
-		public static LevelToolSettings GetOrCreate()
+		// Template supports {index} or {index:000}
+		public const string DefaultLevelNameTemplate = "Level_{index:000}";
+
+		public static bool showWelcomeOnOpen
 		{
-#if UNITY_EDITOR
-			var settings = AssetDatabase.LoadAssetAtPath<LevelToolSettings>(AssetPath);
-			if (settings != null)
-				return settings;
-
-			EnsureParentFolderExists(AssetPath);
-
-			settings = CreateInstance<LevelToolSettings>();
-			AssetDatabase.CreateAsset(settings, AssetPath);
-			AssetDatabase.SaveAssets();
-			AssetDatabase.Refresh();
-			return settings;
-#else
-            return null;
-#endif
+			get => EditorPrefs.GetBool(KeyShowWelcomeOnOpen, DefaultShowWelcomeOnOpen);
+			set => EditorPrefs.SetBool(KeyShowWelcomeOnOpen, value);
 		}
 
-#if UNITY_EDITOR
-		private static void EnsureParentFolderExists(string assetPath)
+		public static bool autoSyncOnOpen
 		{
-			var directory = Path.GetDirectoryName(assetPath);
-			if (string.IsNullOrEmpty(directory))
-				return;
-
-			if (!AssetDatabase.IsValidFolder(directory))
-			{
-				var parent = "Assets";
-				var parts = directory.Substring("Assets/".Length).Split('/');
-
-				foreach (var part in parts)
-				{
-					var current = $"{parent}/{part}";
-					if (!AssetDatabase.IsValidFolder(current))
-						AssetDatabase.CreateFolder(parent, part);
-
-					parent = current;
-				}
-			}
+			get => EditorPrefs.GetBool(KeyAutoSyncOnOpen, DefaultAutoSyncOnOpen);
+			set => EditorPrefs.SetBool(KeyAutoSyncOnOpen, value);
 		}
-#endif
+
+		public static bool autoNamingEnabled
+		{
+			get => EditorPrefs.GetBool(KeyAutoNamingEnabled, DefaultAutoNamingEnabled);
+			set => EditorPrefs.SetBool(KeyAutoNamingEnabled, value);
+		}
+
+		public static string levelNameTemplate
+		{
+			get => EditorPrefs.GetString(KeyLevelNameTemplate, DefaultLevelNameTemplate);
+			set => EditorPrefs.SetString(KeyLevelNameTemplate, string.IsNullOrWhiteSpace(value) ? DefaultLevelNameTemplate : value);
+		}
+
+		/// <summary>
+		/// Optional helper if you want a "Reset to defaults" button.
+		/// </summary>
+		public static void ResetToDefaults()
+		{
+			showWelcomeOnOpen = DefaultShowWelcomeOnOpen;
+			autoSyncOnOpen = DefaultAutoSyncOnOpen;
+			autoNamingEnabled = DefaultAutoNamingEnabled;
+			levelNameTemplate = DefaultLevelNameTemplate;
+		}
 	}
 }
+#endif

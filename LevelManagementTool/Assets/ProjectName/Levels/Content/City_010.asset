@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 60afa9818f594d0b8d94d6cd3854733c, type: 3}
   m_Name: City_010
   m_EditorClassIdentifier: 
-  stableId: f79d7912efd94d7a9c773b97f5aa82aa
+  stableId: 2af01238c6be4a9cbd077cd49b7dc863
   timeLimitSeconds: 120
   difficulty: 90
   goals:

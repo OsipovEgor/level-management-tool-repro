@@ -26,9 +26,6 @@ namespace Game.Levels.EditorTool
 		public int SelectedIndex = -1;
 		public readonly HashSet<string> SelectedStableIds = new(StringComparer.OrdinalIgnoreCase);
 
-		// settings
-		public LevelToolSettings Settings;
-
 		// create preset
 		public int CreateCount = 1;
 		public int PresetTimeLimitSeconds = 120;

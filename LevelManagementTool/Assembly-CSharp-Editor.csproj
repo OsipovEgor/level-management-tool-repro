@@ -70,8 +70,8 @@
     <Compile Include="Assets\Tools\Editor\Tools\LevelManagementTool\Views\LevelTopBarView.cs" />
     <Compile Include="Assets\Tools\Editor\Tools\WhatsNew\ToolsUpdatesWindow.cs" />
     <Compile Include="Assets\Tools\Editor\Tools\LevelManagementTool\UndoRedo\LevelAssetUndoBridge.cs" />
-    <Compile Include="Assets\Tools\Editor\Tools\LevelManagementTool\LevelDatabaseSync.cs" />
     <Compile Include="Assets\Tools\Editor\Tools\LevelManagementTool\LevelManagementController.cs" />
+    <Compile Include="Assets\Tools\Editor\Tools\LevelManagementTool\LevelDatabaseSync.cs" />
     <Reference Include="UnityEngine">
       <HintPath>Z:\Work\Unity\Editors\Installs\2022.3.62f3\Editor\Data\Managed\UnityEngine\UnityEngine.dll</HintPath>
     </Reference>

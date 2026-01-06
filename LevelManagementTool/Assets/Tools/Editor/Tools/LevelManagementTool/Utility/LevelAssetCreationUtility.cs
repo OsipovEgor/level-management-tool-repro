@@ -39,14 +39,11 @@ namespace Game.Levels.EditorTool
 			}
 		}
 
-		public static string GenerateNextLevelName(LevelToolSettings settings)
+		public static string GenerateNextLevelName()
 		{
-			if (settings == null)
-				settings = LevelToolSettings.GetOrCreate();
-
-			string template = string.IsNullOrWhiteSpace(settings.levelNameTemplate)
+			string template = string.IsNullOrWhiteSpace(LevelToolSettings.levelNameTemplate)
 				? "Level_{index:000}"
-				: settings.levelNameTemplate.Trim();
+				: LevelToolSettings.levelNameTemplate.Trim();
 
 			int nextIndex = FindNextIndex(template);
 			return FormatName(template, nextIndex);

@@ -7,7 +7,6 @@ using UnityEditor;
 
 namespace Game.Levels
 {
-	[CreateAssetMenu(menuName = "Game/Levels/Level Config", fileName = "LevelConfig_")]
 	public class LevelConfig : ScriptableObject
 	{
 		[SerializeField, HideInInspector] private string stableId;
