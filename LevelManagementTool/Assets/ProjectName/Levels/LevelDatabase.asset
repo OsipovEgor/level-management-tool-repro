@@ -13,8 +13,8 @@ MonoBehaviour:
   m_Name: LevelDatabase
   m_EditorClassIdentifier: 
   orderedLevels:
-  - {fileID: 11400000, guid: fd953d3d94afbee44b762ff4c98c8ee6, type: 2}
   - {fileID: 11400000, guid: 09e5e66ea731f194ca854755f6df72fc, type: 2}
+  - {fileID: 11400000, guid: fd953d3d94afbee44b762ff4c98c8ee6, type: 2}
   - {fileID: 11400000, guid: bc2af354003a56949839ed63637f7b16, type: 2}
   - {fileID: 11400000, guid: 1bce55de0e02ac44eac18a1ba15e8c24, type: 2}
   - {fileID: 11400000, guid: 92418616b487cb543b844f2d9288fb93, type: 2}
