@@ -1,0 +1,202 @@
+﻿#if UNITY_EDITOR
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using UnityEditor;
+using UnityEngine;
+
+namespace Game.Levels.EditorTool
+{
+	public static class LevelInspectorView
+	{
+		private static readonly HashSet<string> ExcludedAutoProps = new()
+		{
+			"m_Script",
+			"goals",
+			"stableId"
+		};
+
+		public static void Draw(LevelManagementContext ctx, LevelManagementController controller)
+		{
+			EditorGUILayout.BeginVertical();
+			ctx.RightScroll = EditorGUILayout.BeginScrollView(ctx.RightScroll);
+
+			List<LevelConfig> selected = controller.GetSelectedLevels();
+
+			DrawInspectorForSelected(ctx, controller, selected);
+
+			if (selected.Count == 1)
+				LevelIssuesView.DrawSingleLevelIssues(ctx, selected[0]);
+			else
+				LevelIssuesView.DrawMultiIssues(ctx, selected, controller);
+
+			EditorGUILayout.EndScrollView();
+			EditorGUILayout.EndVertical();
+		}
+
+		private static void DrawInspectorForSelected(
+			LevelManagementContext ctx,
+			LevelManagementController controller,
+			List<LevelConfig> targets)
+		{
+			if (targets == null || targets.Count == 0)
+			{
+				EditorGUILayout.HelpBox("Select one or more levels to edit.", MessageType.Info);
+				return;
+			}
+
+			bool multi = targets.Count > 1;
+			EditorGUILayout.LabelField(
+				multi ? $"Editing {targets.Count} levels" : "Editing 1 level",
+				EditorStyles.boldLabel);
+
+			EditorGUILayout.Space(6);
+
+			SerializedObject so = new(targets.ToArray());
+			so.Update();
+
+			if (targets.Count > 1)
+			{
+				using (new EditorGUILayout.HorizontalScope())
+				{
+					if (GUILayout.Button("Edit Level(s)...", GUILayout.Width(160)))
+					{
+						LevelEditPromptWindow.Show("Edit Levels", targets, onApplied: controller.Validate);
+					}
+
+					if (GUILayout.Button("Edit Goals...", GUILayout.Width(140)))
+					{
+						LevelGoalsPromptWindow.ShowMulti(
+							"Edit Goals",
+							targets,
+							onOk: map => controller.ApplyGoalsPerLevel(map),
+							onCancel: () => { },
+							defaultEditSameForAll: true,
+							defaultShowPerLevelGoals: true
+						);
+					}
+				}
+			}
+
+			DrawAutoProperties(so);
+			DrawGoalsForTargets(so, targets);
+
+			bool changed = so.ApplyModifiedProperties();
+
+			if (changed)
+			{
+				foreach (LevelConfig t in targets)
+					EditorUtility.SetDirty(t);
+
+				controller.Validate();
+			}
+		}
+
+		private static void DrawAutoProperties(SerializedObject so)
+		{
+			if (so == null) return;
+
+			SerializedProperty prop = so.GetIterator();
+			bool enterChildren = true;
+
+			while (prop.NextVisible(enterChildren))
+			{
+				enterChildren = false;
+
+				if (ExcludedAutoProps.Contains(prop.name))
+					continue;
+
+				EditorGUILayout.PropertyField(prop, includeChildren: true);
+			}
+		}
+
+		private static void DrawGoalsForTargets(SerializedObject so, List<LevelConfig> targets)
+		{
+			if (targets == null || targets.Count == 0 || so == null) return;
+
+			SerializedProperty goalsProp = so.FindProperty("goals");
+
+			EditorGUILayout.Space(8);
+			EditorGUILayout.LabelField("Goals", EditorStyles.boldLabel);
+
+			if (goalsProp != null)
+			{
+				EditorGUILayout.PropertyField(goalsProp, includeChildren: true);
+			}
+			else
+			{
+				EditorGUILayout.HelpBox("Property 'goals' not found on LevelConfig.", MessageType.Warning);
+			}
+		}
+
+		private static void DrawLevelGoalsInspector(LevelConfig lvl)
+		{
+			EditorGUILayout.Space(8);
+
+			SerializedObject so = new(lvl);
+			so.Update();
+
+			EditorGUILayout.PropertyField(so.FindProperty("goals"), includeChildren: true);
+			so.ApplyModifiedProperties();
+		}
+
+		private static bool GoalsEqual(LevelConfig a, LevelConfig b)
+		{
+			if (a.goals == null && b.goals == null) return true;
+			if (a.goals == null || b.goals == null) return false;
+			if (a.goals.Count != b.goals.Count) return false;
+
+			for (int i = 0; i < a.goals.Count; i++)
+			{
+				LevelGoal ga = a.goals[i];
+				LevelGoal gb = b.goals[i];
+
+				if (ga.Type != gb.Type) return false;
+				if (ga.Target != gb.Target) return false;
+				if (!string.Equals(ga.Tag ?? "", gb.Tag ?? "", StringComparison.Ordinal)) return false;
+			}
+
+			return true;
+		}
+
+		private static bool AllGoalsSame(List<LevelConfig> levels)
+		{
+			LevelConfig first = levels[0];
+			for (int i = 1; i < levels.Count; i++)
+				if (!GoalsEqual(first, levels[i]))
+					return false;
+			return true;
+		}
+
+		private static void DrawGoalsEditorInline(List<LevelGoal> goals)
+		{
+			if (goals == null) return;
+
+			for (int i = 0; i < goals.Count; i++)
+			{
+				LevelGoal g = goals[i];
+				using (new EditorGUILayout.HorizontalScope())
+				{
+					g.Type = (GoalType)EditorGUILayout.EnumPopup(g.Type, GUILayout.Width(160));
+					g.Target = Mathf.Max(1, EditorGUILayout.IntField(g.Target, GUILayout.Width(80)));
+					g.Tag = EditorGUILayout.TextField(g.Tag ?? "", GUILayout.ExpandWidth(true));
+
+					if (GUILayout.Button("X", GUILayout.Width(24)))
+					{
+						goals.RemoveAt(i);
+						GUIUtility.ExitGUI();
+					}
+				}
+
+				goals[i] = g;
+			}
+
+			using (new EditorGUI.DisabledScope(goals.Count >= 3))
+			{
+				if (GUILayout.Button("+ Add Goal", GUILayout.Width(110)))
+					goals.Add(new LevelGoal { Type = GoalType.Collect, Target = 1, Tag = "" });
+			}
+		}
+	}
+}
+#endif

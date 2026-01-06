@@ -12,7 +12,7 @@ namespace Game.Levels
 		public LevelConfig Level;
 	}
 
-	[CreateAssetMenu(menuName = "Game/Levels/Level Id Map", fileName = "LevelIdMap")]
+	[CreateAssetMenu(menuName = "ProjectName/Levels/Level Id Map", fileName = "LevelIdMap")]
 	public class LevelIdMap : ScriptableObject
 	{
 		public List<LevelIdMapEntry> entries = new List<LevelIdMapEntry>();
