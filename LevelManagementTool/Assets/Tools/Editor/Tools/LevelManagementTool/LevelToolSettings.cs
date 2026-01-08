@@ -14,6 +14,7 @@ namespace Game.Levels.EditorTool
 		private const string KeyAutoSyncOnOpen    = KeyPrefix + "autoSyncOnOpen";
 		private const string KeyAutoNamingEnabled = KeyPrefix + "autoNamingEnabled";
 		private const string KeyLevelNameTemplate = KeyPrefix + "levelNameTemplate";
+		private const string KeyShowLevelInspector = KeyPrefix + "showLevelInspector";
 
 		// Defaults
 		public const bool DefaultShowWelcomeOnOpen = true;
@@ -22,6 +23,7 @@ namespace Game.Levels.EditorTool
 
 		// Template supports {index} or {index:000}
 		public const string DefaultLevelNameTemplate = "Level_{index:000}";
+		public const bool DefaultShowLevelInspector = false;
 
 		public static bool showWelcomeOnOpen
 		{
@@ -47,6 +49,12 @@ namespace Game.Levels.EditorTool
 			set => EditorPrefs.SetString(KeyLevelNameTemplate, string.IsNullOrWhiteSpace(value) ? DefaultLevelNameTemplate : value);
 		}
 
+		public static bool showLevelInspector
+		{
+			get => EditorPrefs.GetBool(KeyShowLevelInspector, DefaultShowLevelInspector);
+			set => EditorPrefs.SetBool(KeyShowLevelInspector, value);
+		}
+		
 		/// <summary>
 		/// Optional helper if you want a "Reset to defaults" button.
 		/// </summary>
@@ -56,6 +64,7 @@ namespace Game.Levels.EditorTool
 			autoSyncOnOpen = DefaultAutoSyncOnOpen;
 			autoNamingEnabled = DefaultAutoNamingEnabled;
 			levelNameTemplate = DefaultLevelNameTemplate;
+			showLevelInspector = DefaultShowLevelInspector;
 		}
 	}
 }

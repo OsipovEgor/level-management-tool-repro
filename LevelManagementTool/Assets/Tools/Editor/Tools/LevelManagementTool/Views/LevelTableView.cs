@@ -450,19 +450,9 @@ namespace Game.Levels.EditorTool
 				bool ctrl = e.control || e.command;
 				bool shift = e.shift;
 
-				if (!ctrl && !shift)
-				{
-					ClearSelection(ctx, controller);
-					controller.SetSelected(lvl, true);
-					ctx.SelectedIndex = index;
-					repaint?.Invoke();
-				}
-				else if (ctrl)
-				{
-					controller.SetSelected(lvl, !ctx.IsSelected(lvl));
-					ctx.SelectedIndex = index;
-					repaint?.Invoke();
-				}
+				controller.SetSelected(lvl, !ctx.IsSelected(lvl));
+				ctx.SelectedIndex = index;
+				repaint?.Invoke();
 
 				e.Use();
 			}

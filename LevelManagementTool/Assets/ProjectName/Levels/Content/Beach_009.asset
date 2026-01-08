@@ -17,8 +17,8 @@ MonoBehaviour:
   difficulty: 90
   goals:
   - Type: 0
-    Target: 50
+    Target: 20
     Tag: Buildings
   - Type: 1
-    Target: 20
+    Target: 150
     Tag: Medium Size

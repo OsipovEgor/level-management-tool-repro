@@ -17,7 +17,7 @@ namespace Game.Levels.EditorTool
 		public static void ShowWindow()
 		{
 			var w = GetWindow<LevelManagementWindow>("Level Management");
-			w.minSize = new Vector2(900, 550);
+			w.minSize = new Vector2(1100, 800);
 			w._firstRefresh = false;
 			w.Show();
 		}
@@ -88,7 +88,7 @@ namespace Game.Levels.EditorTool
 
 		private void InitCreatePresetUI()
 		{
-			_ctx.PresetGoals ??= new System.Collections.Generic.List<LevelGoal>(3);
+			_ctx.PresetGoals ??= new List<LevelGoal>(3);
 
 			if (_ctx.PresetGoals.Count == 0)
 			{

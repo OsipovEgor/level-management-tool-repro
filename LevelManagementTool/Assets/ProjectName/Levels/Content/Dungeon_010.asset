@@ -15,10 +15,4 @@ MonoBehaviour:
   stableId: f464eeec318346d58904d0add4701e42
   timeLimitSeconds: 120
   difficulty: 90
-  goals:
-  - Type: 0
-    Target: 50
-    Tag: Buildings
-  - Type: 1
-    Target: 20
-    Tag: Medium Size
+  goals: []

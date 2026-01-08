@@ -12,7 +12,7 @@ namespace ProjectName.Editor.ToolsUpdates
 		public static void ShowWindow()
 		{
 			var window = GetWindow<ToolsUpdatesWindow>("What's New");
-			window.minSize = new Vector2(520, 600);
+			window.minSize = new Vector2(1200, 800);
 		}
 
 		private void OnGUI()

@@ -18,8 +18,8 @@ namespace Game.Levels.EditorTool
 		};
 
 		private List<LevelConfig> _targets; // original assets
-		private List<LevelConfig> _drafts; // in-memory drafts
-		private LevelConfig _commonDraft; // template draft
+		private List<LevelConfig> _drafts;  // in-memory drafts
+		private LevelConfig _commonDraft;   // template draft
 		private SerializedObject _commonSO;
 
 		private Vector2 _scroll;
@@ -27,9 +27,12 @@ namespace Game.Levels.EditorTool
 		// UX toggles
 		private bool _editSameForAll = true;
 		private bool _showPerLevel = true;
-		private bool _useGoalsModal = true;
 
 		private Action _onApplied;
+
+		// IMPORTANT: goals are edited outside SerializedObject (direct list edit),
+		// so ApplyModifiedProperties() may not detect changes (especially remove).
+		private bool _commonDirtyFromNonSerialized;
 
 		#region Open / Lifecycle
 
@@ -80,6 +83,8 @@ namespace Game.Levels.EditorTool
 			_commonDraft = Instantiate(_drafts[0]);
 			_commonDraft.hideFlags = HideFlags.DontSave | HideFlags.HideInHierarchy;
 			_commonSO = new SerializedObject(_commonDraft);
+
+			_commonDirtyFromNonSerialized = false;
 		}
 
 		private void DisposeDrafts()
@@ -97,6 +102,7 @@ namespace Game.Levels.EditorTool
 
 			_commonDraft = null;
 			_commonSO = null;
+			_commonDirtyFromNonSerialized = false;
 		}
 
 		#endregion
@@ -138,7 +144,7 @@ namespace Game.Levels.EditorTool
 				{
 					DrawCommonEditor();
 
-					if (_showPerLevel && _targets.Count > 1)
+					if (_showPerLevel)
 					{
 						EditorGUILayout.Space(10);
 						DrawPerLevelReadOnly();
@@ -158,12 +164,12 @@ namespace Game.Levels.EditorTool
 			using (new EditorGUILayout.HorizontalScope())
 			{
 				_editSameForAll = EditorGUILayout.ToggleLeft(
-					"Edit same values for all selected levels",
+					"Same values for selected levels",
 					_editSameForAll);
 
 				GUILayout.Space(14);
 
-				using (new EditorGUI.DisabledScope(!_editSameForAll || _targets.Count <= 1))
+				using (new EditorGUI.DisabledScope(!_editSameForAll))
 				{
 					_showPerLevel = EditorGUILayout.ToggleLeft(
 						"Show per-level values",
@@ -195,8 +201,11 @@ namespace Game.Levels.EditorTool
 				bool changed = _commonSO.ApplyModifiedProperties();
 
 				// propagate template to drafts (preview only)
-				if (changed)
+				// IMPORTANT: also propagate when goals changed outside SerializedObject
+				if (changed || _commonDirtyFromNonSerialized)
 				{
+					_commonDirtyFromNonSerialized = false;
+
 					foreach (var d in _drafts)
 						EditorUtility.CopySerialized(_commonDraft, d);
 				}
@@ -205,35 +214,52 @@ namespace Game.Levels.EditorTool
 
 		private void DrawGoalsColumn_Common(SerializedObject so)
 		{
-			var goalsProp = so.FindProperty("goals");
-			if (goalsProp != null)
-				EditorGUILayout.PropertyField(goalsProp, true);
+			EditorGUILayout.LabelField("Goals (0..3)", EditorStyles.boldLabel);
 
-			EditorGUILayout.Space(8);
-			_useGoalsModal = EditorGUILayout.ToggleLeft("Use Goals modal editor", _useGoalsModal);
+			// Work on a local list to avoid accidental shared references
+			var goals = _commonDraft.goals != null
+				? LevelGoalsDeepCopy(_commonDraft.goals)
+				: new List<LevelGoal>(LevelGoalsEditorGUI.MaxGoals);
 
-			if (_useGoalsModal)
+			EditorGUI.BeginChangeCheck();
+			LevelGoalsEditorGUI.DrawGoalsEditor(ref goals);
+			if (EditorGUI.EndChangeCheck())
 			{
-				if (GUILayout.Button("Open Goals Editor...", GUILayout.Width(200)))
-				{
-					LevelGoalsPromptWindow.ShowMulti(
-						"Edit Goals",
-						_drafts,
-						map =>
-						{
-							foreach (var kv in map)
-							{
-								kv.Key.goals = kv.Value;
-							}
+				// 1) Set to common draft (as deep copy)
+				_commonDraft.goals = LevelGoalsDeepCopy(goals);
 
-							Repaint();
-						},
-						() => { },
-						true,
-						true
-					);
-				}
+				// 2) Mark "non-serialized dirty" so common editor will propagate even if ApplyModifiedProperties=false
+				_commonDirtyFromNonSerialized = true;
+
+				// 3) Keep drafts in sync immediately (so preview is correct right away)
+				foreach (var d in _drafts)
+					d.goals = LevelGoalsDeepCopy(goals);
+
+				// 4) Help Unity notice object changed outside SerializedObject (safe no-op if unnecessary)
+				EditorUtility.SetDirty(_commonDraft);
+				so.Update();
+
+				GUI.changed = true;
 			}
+		}
+
+		private static List<LevelGoal> LevelGoalsDeepCopy(List<LevelGoal> src)
+		{
+			var list = new List<LevelGoal>(LevelGoalsEditorGUI.MaxGoals);
+			if (src == null) return list;
+
+			for (int i = 0; i < src.Count && i < LevelGoalsEditorGUI.MaxGoals; i++)
+			{
+				var g = src[i];
+				list.Add(new LevelGoal
+				{
+					Type = g.Type,
+					Target = g.Target,
+					Tag = g.Tag ?? ""
+				});
+			}
+
+			return list;
 		}
 
 		#endregion
@@ -257,7 +283,7 @@ namespace Game.Levels.EditorTool
 
 						DrawTwoColumn(
 							() => DrawAutoProperties(so),
-							() => DrawGoalsColumn_PerLevel(so));
+							() => DrawGoalsColumn_PerLevel(_drafts[i]));
 
 						so.ApplyModifiedProperties();
 					}
@@ -280,7 +306,7 @@ namespace Game.Levels.EditorTool
 
 					DrawTwoColumn(
 						() => DrawAutoProperties(so),
-						() => DrawGoalsColumn_PerLevel(so));
+						() => DrawGoalsColumn_PerLevel(_drafts[i]));
 
 					so.ApplyModifiedProperties();
 				}
@@ -332,11 +358,21 @@ namespace Game.Levels.EditorTool
 			}
 		}
 
-		private static void DrawGoalsColumn_PerLevel(SerializedObject so)
+		private static void DrawGoalsColumn_PerLevel(LevelConfig draft)
 		{
-			var goalsProp = so.FindProperty("goals");
-			if (goalsProp != null)
-				EditorGUILayout.PropertyField(goalsProp, true);
+			EditorGUILayout.LabelField("Goals (0..3)", EditorStyles.boldLabel);
+
+			var goals = draft.goals != null
+				? LevelGoalsDeepCopy(draft.goals)
+				: new List<LevelGoal>(LevelGoalsEditorGUI.MaxGoals);
+
+			EditorGUI.BeginChangeCheck();
+			LevelGoalsEditorGUI.DrawGoalsEditor(ref goals);
+			if (EditorGUI.EndChangeCheck())
+			{
+				draft.goals = LevelGoalsDeepCopy(goals);
+				GUI.changed = true;
+			}
 		}
 
 		#endregion

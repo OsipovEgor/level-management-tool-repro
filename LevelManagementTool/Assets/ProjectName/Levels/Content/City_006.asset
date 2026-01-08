@@ -13,8 +13,8 @@ MonoBehaviour:
   m_Name: City_006
   m_EditorClassIdentifier: 
   stableId: 5df89f3848e64a5a8cea17ca0aea8503
-  timeLimitSeconds: 120
-  difficulty: 90
+  timeLimitSeconds: 180
+  difficulty: 30
   goals:
   - Type: 0
     Target: 50

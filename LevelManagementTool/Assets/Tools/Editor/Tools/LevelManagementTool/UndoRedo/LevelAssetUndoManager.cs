@@ -96,8 +96,13 @@ namespace Game.Levels.EditorTool
 			{
 				LevelAssetRecord rec = bridge.created.FirstOrDefault(r =>
 					string.Equals(r.assetPath, path, StringComparison.OrdinalIgnoreCase));
-				if (rec != null)
-					EnsureAssetExistsFromJson(rec.assetPath, rec.json);
+
+				if (rec == null) continue;
+
+				EnsureAssetExistsFromJson(rec.assetPath, rec.json);
+
+				if (!string.IsNullOrEmpty(rec.databasePath))
+					_pendingRelinks.Add(rec);
 			}
 
 			foreach (string path in createdRemoved)

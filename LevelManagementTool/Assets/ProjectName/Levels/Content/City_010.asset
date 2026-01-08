@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   stableId: 2af01238c6be4a9cbd077cd49b7dc863
   timeLimitSeconds: 120
-  difficulty: 90
+  difficulty: 50
   goals:
   - Type: 0
     Target: 50

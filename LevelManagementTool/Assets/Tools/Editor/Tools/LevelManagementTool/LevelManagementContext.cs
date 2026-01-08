@@ -20,7 +20,7 @@ namespace Game.Levels.EditorTool
 		public Vector2 LeftScroll;
 		public Vector2 RightScroll;
 		public bool ShowWelcome = true;
-		public bool ShowCreateOptions = true;
+		public bool ShowCreateOptions;
 
 		// selection
 		public int SelectedIndex = -1;

@@ -21,10 +21,10 @@ namespace Game.Levels
 		public string StableId => stableId;
 #endif //UNITY_EDITOR
 
-		[Header("Balance")] [Min(1)] public int timeLimitSeconds = 60;
-		[Min(0)] public int difficulty = 0;
+		[Header("Balance")] [Min(0)] public int timeLimitSeconds = 60;
+		[Min(0)] public int difficulty;
 
-		[Header("Goals (0..3)")] public List<LevelGoal> goals = new List<LevelGoal>(3);
+		[Header("Goals (0..3)")] public List<LevelGoal> goals = new(3);
 
 #if UNITY_EDITOR
 		private void OnValidate()

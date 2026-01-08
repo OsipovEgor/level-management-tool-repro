@@ -344,7 +344,7 @@ namespace Game.Levels.EditorTool
 
 			foreach (string n in names)
 			{
-				last = CreateLevelAssetWithPreset(folder, n, recordInBridge: true, bridge: bridge);
+				last = CreateLevelAssetWithPreset(folder, n);
 				if (last != null) created.Add(last);
 			}
 
@@ -417,24 +417,41 @@ namespace Game.Levels.EditorTool
 
 			LevelAssetUndoBridge bridge = LevelAssetUndoManager.Bridge;
 			Undo.RecordObject(bridge, "Create Levels");
-			bool anyCreated = false;
 
-			LevelConfig lastCreated = null;
+			var created = new List<LevelConfig>(count);
 
 			for (int i = 0; i < count; i++)
 			{
 				string levelName = LevelAssetCreationUtility.GenerateNextLevelName();
-				lastCreated = CreateLevelAssetWithPreset(folder, levelName, recordInBridge: true, bridge: bridge);
-				anyCreated |= lastCreated != null;
+				var lvl = CreateLevelAssetWithPreset(folder, levelName);
+				if (lvl != null) created.Add(lvl);
 			}
 
-			if (anyCreated)
+			if (created.Count > 0 && _ctx.Database != null)
+			{
+				// ✅ ВАЖНО: явное добавление в DB (undoable),
+				// вместо "надеемся на Sync" в FinalizeAfterCreate
+				AppendCreatedLevelsToDatabase(created);
+
+				// ✅ Пишем created records в bridge уже ПОСЛЕ того,
+				// как уровни реально попали в DB (теперь index можно получить точно)
+				foreach (var lvl in created)
+					RecordCreatedLevelInBridge(bridge, lvl);
+			}
+			else if (created.Count > 0)
+			{
+				// DB не выбрана — просто записываем created records без databasePath/index
+				foreach (var lvl in created)
+					RecordCreatedLevelInBridge(bridge, lvl);
+			}
+
+			if (created.Count > 0)
 			{
 				EditorUtility.SetDirty(bridge);
 				LevelAssetUndoManager.RefreshSnapshotsNow();
 			}
 
-			FinalizeAfterCreate(lastCreated);
+			FinalizeAfterCreate(created.Count > 0 ? created[^1] : null);
 		}
 
 		private void CreateSingleLevelWithName(string folder, string levelName)
@@ -442,16 +459,25 @@ namespace Game.Levels.EditorTool
 			LevelAssetUndoBridge bridge = LevelAssetUndoManager.Bridge;
 			Undo.RecordObject(bridge, "Create Level");
 
-			LevelConfig created = CreateLevelAssetWithPreset(folder, levelName, recordInBridge: true, bridge: bridge);
+			LevelConfig created = CreateLevelAssetWithPreset(folder, levelName);
 
-			EditorUtility.SetDirty(bridge);
-			LevelAssetUndoManager.RefreshSnapshotsNow();
+			if (created != null && _ctx.Database != null)
+			{
+				AppendCreatedLevelsToDatabase(new List<LevelConfig> { created });
+			}
+
+			if (created != null)
+			{
+				RecordCreatedLevelInBridge(bridge, created);
+
+				EditorUtility.SetDirty(bridge);
+				LevelAssetUndoManager.RefreshSnapshotsNow();
+			}
 
 			FinalizeAfterCreate(created);
 		}
 
-		private LevelConfig CreateLevelAssetWithPreset(string folder, string assetName, bool recordInBridge,
-			LevelAssetUndoBridge bridge)
+		private LevelConfig CreateLevelAssetWithPreset(string folder, string assetName)
 		{
 			string path = LevelAssetCreationUtility.GetUniquePath(folder, assetName);
 
@@ -466,18 +492,42 @@ namespace Game.Levels.EditorTool
 			AssetDatabase.SaveAssets();
 			AssetDatabase.Refresh();
 
-			if (recordInBridge && bridge != null)
-			{
-				string json = EditorJsonUtility.ToJson(asset);
-				LevelUndoBridgeSerializedOps.AddCreatedRecord(
-					bridge,
-					new LevelAssetRecord { assetPath = path, json = json },
-					"Create Level(s) (Bridge)"
-				);
-				LevelAssetUndoManager.RefreshSnapshotsNow();
-			}
+			// recordInBridge больше не используется здесь намеренно:
+			// теперь запись в bridge делается в RecordCreatedLevelInBridge(...)
+			// после того, как ассет добавлен в DB и индекс известен.
 
 			return asset;
+		}
+
+		private void RecordCreatedLevelInBridge(LevelAssetUndoBridge bridge, LevelConfig asset)
+		{
+			if (bridge == null || asset == null) return;
+
+			string path = AssetDatabase.GetAssetPath(asset);
+			if (string.IsNullOrEmpty(path)) return;
+
+			string json = EditorJsonUtility.ToJson(asset);
+
+			string dbPath = null;
+			int dbIndex = -1;
+
+			if (_ctx.Database != null && _ctx.Database.orderedLevels != null)
+			{
+				dbPath = AssetDatabase.GetAssetPath(_ctx.Database);
+				dbIndex = _ctx.Database.orderedLevels.IndexOf(asset);
+			}
+
+			LevelUndoBridgeSerializedOps.AddCreatedRecord(
+				bridge,
+				new LevelAssetRecord
+				{
+					assetPath = path,
+					json = json,
+					databasePath = dbPath,
+					databaseIndex = dbIndex
+				},
+				"Create Level(s) (Bridge)"
+			);
 		}
 
 		private void ApplyCreatePreset(LevelConfig lvl)
@@ -514,51 +564,6 @@ namespace Game.Levels.EditorTool
 				EditorGUIUtility.PingObject(lastCreated);
 				_ctx.SelectedIndex = _ctx.AllLevels.IndexOf(lastCreated);
 			}
-		}
-
-		// -------------------------
-		// Internals (duplicate)
-		// -------------------------
-
-		private void DuplicateLevelInternal(LevelConfig source, string folder, string newAssetName)
-		{
-			string dstPath = LevelAssetCreationUtility.GetUniquePath(folder, newAssetName);
-
-			LevelConfig clone = Object.Instantiate(source);
-			clone.name = newAssetName;
-
-			AssetDatabase.CreateAsset(clone, dstPath);
-
-			LevelStableIdUtility.RegenerateStableId(clone);
-
-			AssetDatabase.SaveAssets();
-			AssetDatabase.Refresh();
-
-			string json = EditorJsonUtility.ToJson(clone);
-
-			LevelAssetUndoBridge bridge = LevelAssetUndoManager.Bridge;
-			Undo.RecordObject(bridge, "Duplicate Level Asset");
-			LevelUndoBridgeSerializedOps.AddCreatedRecord(
-				bridge,
-				new LevelAssetRecord { assetPath = dstPath, json = json },
-				"Create Level(s) (Bridge)"
-			);
-			LevelAssetUndoManager.RefreshSnapshotsNow();
-			EditorUtility.SetDirty(bridge);
-
-			LevelAssetUndoManager.RefreshSnapshotsNow();
-
-			RefreshLevels();
-
-			if (_ctx.Database != null)
-				LevelDatabaseSync.Sync(_ctx.Database, _ctx.AllLevels);
-
-			Validate();
-
-			Selection.activeObject = clone;
-			EditorGUIUtility.PingObject(clone);
-
-			_ctx.SelectedIndex = _ctx.AllLevels.IndexOf(clone);
 		}
 
 		// -------------------------

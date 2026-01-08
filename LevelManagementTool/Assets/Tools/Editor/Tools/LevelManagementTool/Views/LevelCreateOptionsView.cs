@@ -46,7 +46,7 @@ namespace Game.Levels.EditorTool
 					AssetDatabase.SaveAssets();
 				}
 
-				if (ctx.CreateCount > 1 && (!LevelToolSettings.autoNamingEnabled))
+				if (ctx.CreateCount > 1 && !LevelToolSettings.autoNamingEnabled)
 				{
 					EditorGUILayout.HelpBox(
 						"Batch create (count > 1) requires Auto naming enabled." +

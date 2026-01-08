@@ -10,11 +10,11 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 60afa9818f594d0b8d94d6cd3854733c, type: 3}
-  m_Name: Beach_001
+  m_Name: Dungeon_014
   m_EditorClassIdentifier: 
-  stableId: bc278396527b44f89a40900d2eee77b2
+  stableId: b50e6714b4e6481faed9ce920a75f7b0
   timeLimitSeconds: 120
-  difficulty: 0
+  difficulty: 90
   goals:
   - Type: 0
     Target: 50

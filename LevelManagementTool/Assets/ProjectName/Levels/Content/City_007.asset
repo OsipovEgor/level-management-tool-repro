@@ -13,11 +13,11 @@ MonoBehaviour:
   m_Name: City_007
   m_EditorClassIdentifier: 
   stableId: 54d1d58d5314474eae9a691bf623ff9e
-  timeLimitSeconds: 120
-  difficulty: 90
+  timeLimitSeconds: 180
+  difficulty: 40
   goals:
   - Type: 0
-    Target: 50
+    Target: 40
     Tag: Buildings
   - Type: 1
     Target: 20

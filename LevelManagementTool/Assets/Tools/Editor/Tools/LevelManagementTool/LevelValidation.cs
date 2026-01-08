@@ -50,12 +50,18 @@ namespace Game.Levels.EditorTool
 				if (lvl.timeLimitSeconds <= 0)
 					issues.Add(new ValidationIssue(ValidationSeverity.Error, "Time limit must be > 0", lvl));
 
+				if (lvl.difficulty <= 0)
+					issues.Add(new ValidationIssue(ValidationSeverity.Error, "Difficulty must be > 0", lvl));
+
 				if (lvl.goals != null && lvl.goals.Count > 3)
 					issues.Add(new ValidationIssue(ValidationSeverity.Warning, "More than 3 goals (will be trimmed)",
 						lvl));
 
 				if (lvl.goals != null)
 				{
+					if (lvl.goals.Count == 0)
+						issues.Add(new ValidationIssue(ValidationSeverity.Warning, "Goal count is 0 for level ", lvl));
+						
 					for (int i = 0; i < lvl.goals.Count; i++)
 					{
 						if (lvl.goals[i].Target <= 0)

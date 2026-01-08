@@ -102,7 +102,7 @@ namespace Game.Levels.EditorTool
 			using (var sv = new EditorGUILayout.ScrollViewScope(_scroll))
 			{
 				_scroll = sv.scrollPosition;
-				DrawGoalsEditor(ref _singleGoals);
+				LevelGoalsEditorGUI.DrawGoalsEditor(ref _singleGoals);
 			}
 
 			DrawFooterSingle();
@@ -157,7 +157,7 @@ namespace Game.Levels.EditorTool
 				if (_editSameForAll)
 				{
 					EditorGUILayout.HelpBox("Editing common goals. Press OK to apply to all selected levels.", MessageType.None);
-					DrawGoalsEditor(ref _commonGoals);
+					LevelGoalsEditorGUI.DrawGoalsEditor(ref _commonGoals);
 
 					// 2) И по твоему желанию — держим перед глазами, что у кого сейчас
 					if (_showPerLevelGoals)
@@ -242,7 +242,7 @@ namespace Game.Levels.EditorTool
 					}
 
 					// inline editor for this level
-					DrawGoalsEditor(ref goals);
+					LevelGoalsEditorGUI.DrawGoalsEditor(ref goals);
 
 					SetGoalsForTarget(lvl, goals);
 				}
@@ -252,48 +252,6 @@ namespace Game.Levels.EditorTool
 			EditorGUILayout.HelpBox(
 				"Tip: If you want to apply one set of goals to everyone, enable 'Edit same goals for all selected levels'.",
 				MessageType.None);
-		}
-
-		// ---------------- Goals Editor ----------------
-
-		private static void DrawGoalsEditor(ref List<LevelGoal> goals)
-		{
-			goals ??= new List<LevelGoal>(MaxGoals);
-
-			for (int i = 0; i < goals.Count; i++)
-			{
-				var g = goals[i];
-
-				using (new EditorGUILayout.HorizontalScope())
-				{
-					g.Type = (GoalType)EditorGUILayout.EnumPopup(g.Type, GUILayout.Width(160));
-					g.Target = Mathf.Max(1, EditorGUILayout.IntField(g.Target, GUILayout.Width(80)));
-					g.Tag = EditorGUILayout.TextField(g.Tag ?? "", GUILayout.ExpandWidth(true));
-
-					if (GUILayout.Button("X", GUILayout.Width(24)))
-					{
-						goals.RemoveAt(i);
-						GUIUtility.ExitGUI();
-					}
-				}
-
-				goals[i] = g;
-			}
-
-			using (new EditorGUI.DisabledScope(goals.Count >= MaxGoals))
-			{
-				if (GUILayout.Button("+ Add Goal", GUILayout.Width(110)))
-					goals.Add(NewDefaultGoal());
-			}
-
-			if (goals.Count > MaxGoals)
-				goals.RemoveRange(MaxGoals, goals.Count - MaxGoals);
-		}
-
-		private static LevelGoal NewDefaultGoal()
-		{
-			// Works for struct or class; for class you need a public parameterless ctor.
-			return new LevelGoal { Type = GoalType.Collect, Target = 1, Tag = "" };
 		}
 
 		// ---------------- Footer ----------------

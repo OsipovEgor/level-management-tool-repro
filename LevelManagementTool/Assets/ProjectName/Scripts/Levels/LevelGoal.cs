@@ -16,7 +16,7 @@ namespace Game.Levels
 	{
 		public GoalType Type;
 
-		[Min(1)] public int Target;
+		[Min(0)] public int Target;
 
 		// Optional discriminator (e.g. "Cars", "Trees", etc.)
 		public string Tag;
