@@ -47,7 +47,7 @@ namespace Game.Levels.EditorTool
 
 			w.BuildDrafts();
 
-			w.minSize = new Vector2(650, 560);
+			w.minSize = new Vector2(700, 560);
 			w.ShowModalUtility();
 		}
 

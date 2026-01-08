@@ -53,7 +53,7 @@ namespace Game.Levels.EditorTool
 			w.BuildGoalsCacheFromTargets();
 			w._commonGoals = DeepCopyGoals(w.GetGoalsForTarget(w._targets[0]));
 
-			w.minSize = new Vector2(980, 520);
+			w.minSize = new Vector2(700, 520);
 			w.ShowModalUtility();
 		}
 
