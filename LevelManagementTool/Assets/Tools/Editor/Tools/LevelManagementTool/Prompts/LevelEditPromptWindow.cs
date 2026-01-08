@@ -9,18 +9,17 @@ namespace Game.Levels.EditorTool
 {
 	public sealed class LevelEditPromptWindow : EditorWindow
 	{
-		// Fields hidden from UI
 		private static readonly HashSet<string> ExcludedFromUI = new()
 		{
 			"m_Script",
 			"stableId",
-			"goals" // goals are drawn in the right column
+			"goals"
 		};
 
-		private List<LevelConfig> _targets; // original assets
-		private List<LevelConfig> _drafts;  // in-memory drafts
-		private LevelConfig _commonDraft;   // template draft
-		private SerializedObject _commonSO;
+		private List<LevelConfig> _targets;
+		private List<LevelConfig> _drafts;
+		private LevelConfig _commonDraft;
+		private SerializedObject _commonSo;
 
 		private Vector2 _scroll;
 
@@ -30,8 +29,6 @@ namespace Game.Levels.EditorTool
 
 		private Action _onApplied;
 
-		// IMPORTANT: goals are edited outside SerializedObject (direct list edit),
-		// so ApplyModifiedProperties() may not detect changes (especially remove).
 		private bool _commonDirtyFromNonSerialized;
 
 		#region Open / Lifecycle
@@ -40,17 +37,17 @@ namespace Game.Levels.EditorTool
 		{
 			if (targets == null) return;
 
-			var list = targets.Where(t => t != null).Distinct().ToList();
+			List<LevelConfig> list = targets.Where(t => t != null).Distinct().ToList();
 			if (list.Count == 0) return;
 
-			var w = CreateInstance<LevelEditPromptWindow>();
+			LevelEditPromptWindow w = CreateInstance<LevelEditPromptWindow>();
 			w.titleContent = new GUIContent(title);
 			w._targets = list;
 			w._onApplied = onApplied;
 
 			w.BuildDrafts();
 
-			w.minSize = new Vector2(1040, 560);
+			w.minSize = new Vector2(650, 560);
 			w.ShowModalUtility();
 		}
 
@@ -72,17 +69,17 @@ namespace Game.Levels.EditorTool
 
 			_drafts = new List<LevelConfig>(_targets.Count);
 
-			foreach (var t in _targets)
+			foreach (LevelConfig target in _targets)
 			{
-				var d = Instantiate(t);
-				d.name = t.name;
-				d.hideFlags = HideFlags.DontSave | HideFlags.HideInHierarchy;
-				_drafts.Add(d);
+				LevelConfig draft = Instantiate(target);
+				draft.name = target.name;
+				draft.hideFlags = HideFlags.DontSave | HideFlags.HideInHierarchy;
+				_drafts.Add(draft);
 			}
 
 			_commonDraft = Instantiate(_drafts[0]);
 			_commonDraft.hideFlags = HideFlags.DontSave | HideFlags.HideInHierarchy;
-			_commonSO = new SerializedObject(_commonDraft);
+			_commonSo = new SerializedObject(_commonDraft);
 
 			_commonDirtyFromNonSerialized = false;
 		}
@@ -91,9 +88,12 @@ namespace Game.Levels.EditorTool
 		{
 			if (_drafts != null)
 			{
-				foreach (var d in _drafts)
+				foreach (LevelConfig d in _drafts)
+				{
 					if (d != null)
 						DestroyImmediate(d);
+				}
+
 				_drafts = null;
 			}
 
@@ -101,7 +101,7 @@ namespace Game.Levels.EditorTool
 				DestroyImmediate(_commonDraft);
 
 			_commonDraft = null;
-			_commonSO = null;
+			_commonSo = null;
 			_commonDirtyFromNonSerialized = false;
 		}
 
@@ -136,7 +136,7 @@ namespace Game.Levels.EditorTool
 			DrawTopToggles();
 			EditorGUILayout.Space(6);
 
-			using (var sv = new EditorGUILayout.ScrollViewScope(_scroll))
+			using (EditorGUILayout.ScrollViewScope sv = new(_scroll))
 			{
 				_scroll = sv.scrollPosition;
 
@@ -192,22 +192,22 @@ namespace Game.Levels.EditorTool
 					"Editing a draft template. Changes are applied only after clicking Apply.",
 					MessageType.None);
 
-				_commonSO.Update();
+				_commonSo.Update();
 
 				DrawTwoColumn(
-					() => DrawAutoProperties(_commonSO),
-					() => DrawGoalsColumn_Common(_commonSO));
+					() => DrawAutoProperties(_commonSo),
+					() => DrawGoalsColumn_Common(_commonSo));
 
-				bool changed = _commonSO.ApplyModifiedProperties();
+				bool changed = _commonSo.ApplyModifiedProperties();
 
-				// propagate template to drafts (preview only)
-				// IMPORTANT: also propagate when goals changed outside SerializedObject
-				if (changed || _commonDirtyFromNonSerialized)
+				if (!changed && !_commonDirtyFromNonSerialized)
+					return;
+
+				_commonDirtyFromNonSerialized = false;
+
+				foreach (LevelConfig draft in _drafts)
 				{
-					_commonDirtyFromNonSerialized = false;
-
-					foreach (var d in _drafts)
-						EditorUtility.CopySerialized(_commonDraft, d);
+					EditorUtility.CopySerialized(_commonDraft, draft);
 				}
 			}
 		}
@@ -216,46 +216,46 @@ namespace Game.Levels.EditorTool
 		{
 			EditorGUILayout.LabelField("Goals (0..3)", EditorStyles.boldLabel);
 
-			// Work on a local list to avoid accidental shared references
-			var goals = _commonDraft.goals != null
+			List<LevelGoal> goals = _commonDraft.goals != null
 				? LevelGoalsDeepCopy(_commonDraft.goals)
 				: new List<LevelGoal>(LevelGoalsEditorGUI.MaxGoals);
 
 			EditorGUI.BeginChangeCheck();
 			LevelGoalsEditorGUI.DrawGoalsEditor(ref goals);
-			if (EditorGUI.EndChangeCheck())
+
+			if (!EditorGUI.EndChangeCheck())
+				return;
+
+			_commonDraft.goals = LevelGoalsDeepCopy(goals);
+
+			_commonDirtyFromNonSerialized = true;
+
+			foreach (LevelConfig draft in _drafts)
 			{
-				// 1) Set to common draft (as deep copy)
-				_commonDraft.goals = LevelGoalsDeepCopy(goals);
-
-				// 2) Mark "non-serialized dirty" so common editor will propagate even if ApplyModifiedProperties=false
-				_commonDirtyFromNonSerialized = true;
-
-				// 3) Keep drafts in sync immediately (so preview is correct right away)
-				foreach (var d in _drafts)
-					d.goals = LevelGoalsDeepCopy(goals);
-
-				// 4) Help Unity notice object changed outside SerializedObject (safe no-op if unnecessary)
-				EditorUtility.SetDirty(_commonDraft);
-				so.Update();
-
-				GUI.changed = true;
+				draft.goals = LevelGoalsDeepCopy(goals);
 			}
+
+			EditorUtility.SetDirty(_commonDraft);
+			so.Update();
+
+			GUI.changed = true;
 		}
 
 		private static List<LevelGoal> LevelGoalsDeepCopy(List<LevelGoal> src)
 		{
-			var list = new List<LevelGoal>(LevelGoalsEditorGUI.MaxGoals);
-			if (src == null) return list;
+			List<LevelGoal> list = new(LevelGoalsEditorGUI.MaxGoals);
+
+			if (src == null)
+				return list;
 
 			for (int i = 0; i < src.Count && i < LevelGoalsEditorGUI.MaxGoals; i++)
 			{
-				var g = src[i];
+				LevelGoal goal = src[i];
 				list.Add(new LevelGoal
 				{
-					Type = g.Type,
-					Target = g.Target,
-					Tag = g.Tag ?? ""
+					Type = goal.Type,
+					Target = goal.Target,
+					Tag = goal.Tag ?? ""
 				});
 			}
 
@@ -270,20 +270,21 @@ namespace Game.Levels.EditorTool
 		{
 			EditorGUILayout.LabelField("Per-level preview (drafts)", EditorStyles.boldLabel);
 
-			for (int i = 0; i < _drafts.Count; i++)
+			for (int index = 0; index < _drafts.Count; index++)
 			{
 				using (new EditorGUILayout.VerticalScope("box"))
 				{
-					DrawLevelHeader(_targets[i]);
+					DrawLevelHeader(_targets[index]);
 
 					using (new EditorGUI.DisabledScope(true))
 					{
-						var so = new SerializedObject(_drafts[i]);
+						SerializedObject so = new(_drafts[index]);
 						so.Update();
 
+						int indexCopy = index;
 						DrawTwoColumn(
 							() => DrawAutoProperties(so),
-							() => DrawGoalsColumn_PerLevel(_drafts[i]));
+							() => DrawGoalsColumn_PerLevel(_drafts[indexCopy]));
 
 						so.ApplyModifiedProperties();
 					}
@@ -295,18 +296,19 @@ namespace Game.Levels.EditorTool
 		{
 			EditorGUILayout.LabelField("Per-level edit (drafts)", EditorStyles.boldLabel);
 
-			for (int i = 0; i < _drafts.Count; i++)
+			for (int index = 0; index < _drafts.Count; index++)
 			{
 				using (new EditorGUILayout.VerticalScope("box"))
 				{
-					DrawLevelHeader(_targets[i]);
+					DrawLevelHeader(_targets[index]);
 
-					var so = new SerializedObject(_drafts[i]);
+					SerializedObject so = new(_drafts[index]);
 					so.Update();
 
+					int indexCopy = index;
 					DrawTwoColumn(
 						() => DrawAutoProperties(so),
-						() => DrawGoalsColumn_PerLevel(_drafts[i]));
+						() => DrawGoalsColumn_PerLevel(_drafts[indexCopy]));
 
 					so.ApplyModifiedProperties();
 				}
@@ -333,7 +335,7 @@ namespace Game.Levels.EditorTool
 		{
 			using (new EditorGUILayout.HorizontalScope())
 			{
-				using (new EditorGUILayout.VerticalScope(GUILayout.MinWidth(520)))
+				using (new EditorGUILayout.VerticalScope(GUILayout.MinWidth(260)))
 					left?.Invoke();
 
 				GUILayout.Space(12);
@@ -345,7 +347,7 @@ namespace Game.Levels.EditorTool
 
 		private static void DrawAutoProperties(SerializedObject so)
 		{
-			var prop = so.GetIterator();
+			SerializedProperty prop = so.GetIterator();
 			bool enterChildren = true;
 
 			while (prop.NextVisible(enterChildren))
@@ -362,17 +364,18 @@ namespace Game.Levels.EditorTool
 		{
 			EditorGUILayout.LabelField("Goals (0..3)", EditorStyles.boldLabel);
 
-			var goals = draft.goals != null
+			List<LevelGoal> goals = draft.goals != null
 				? LevelGoalsDeepCopy(draft.goals)
 				: new List<LevelGoal>(LevelGoalsEditorGUI.MaxGoals);
 
 			EditorGUI.BeginChangeCheck();
 			LevelGoalsEditorGUI.DrawGoalsEditor(ref goals);
-			if (EditorGUI.EndChangeCheck())
-			{
-				draft.goals = LevelGoalsDeepCopy(goals);
-				GUI.changed = true;
-			}
+
+			if (!EditorGUI.EndChangeCheck())
+				return;
+
+			draft.goals = LevelGoalsDeepCopy(goals);
+			GUI.changed = true;
 		}
 
 		#endregion
@@ -385,17 +388,17 @@ namespace Game.Levels.EditorTool
 
 			for (int i = 0; i < _targets.Count; i++)
 			{
-				var original = _targets[i];
-				var draft = _drafts[i];
-				if (original == null || draft == null) continue;
+				LevelConfig original = _targets[i];
+				LevelConfig draft = _drafts[i];
 
-				// Preserve fields that must never change
+				if (!original || !draft)
+					continue;
+
 				string stableId = original.StableId;
 				string originalName = original.name;
 
 				EditorUtility.CopySerialized(draft, original);
 
-				// Restore protected values
 				original.StableId = stableId;
 				original.name = originalName;
 
@@ -414,16 +417,16 @@ namespace Game.Levels.EditorTool
 
 				if (GUILayout.Button("Cancel", GUILayout.Width(110)))
 				{
-					Close(); // drafts discarded
+					Close();
 					return;
 				}
 
-				if (GUILayout.Button("Apply", GUILayout.Width(110)))
-				{
-					CommitDrafts();
-					_onApplied?.Invoke();
-					Close();
-				}
+				if (!GUILayout.Button("Apply", GUILayout.Width(110)))
+					return;
+
+				CommitDrafts();
+				_onApplied?.Invoke();
+				Close();
 			}
 		}
 

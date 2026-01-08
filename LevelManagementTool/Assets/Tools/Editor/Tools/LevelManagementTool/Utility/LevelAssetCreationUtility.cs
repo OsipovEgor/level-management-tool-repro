@@ -41,9 +41,9 @@ namespace Game.Levels.EditorTool
 
 		public static string GenerateNextLevelName()
 		{
-			string template = string.IsNullOrWhiteSpace(LevelToolSettings.levelNameTemplate)
+			string template = string.IsNullOrWhiteSpace(LevelToolSettings.LevelNameTemplate)
 				? "Level_{index:000}"
-				: LevelToolSettings.levelNameTemplate.Trim();
+				: LevelToolSettings.LevelNameTemplate.Trim();
 
 			int nextIndex = FindNextIndex(template);
 			return FormatName(template, nextIndex);
@@ -54,10 +54,10 @@ namespace Game.Levels.EditorTool
 			return IndexTokenRegex.Replace(template, m =>
 			{
 				string zeros = m.Groups["zeros"].Value;
-				if (string.IsNullOrEmpty(zeros))
-					return index.ToString();
 
-				return index.ToString(new string('0', zeros.Length));
+				return string.IsNullOrEmpty(zeros)
+					? index.ToString()
+					: index.ToString(new string('0', zeros.Length));
 			});
 		}
 
@@ -90,10 +90,9 @@ namespace Game.Levels.EditorTool
 				return "";
 
 			Match m = IndexTokenRegex.Match(template);
-			if (!m.Success)
-				return template;
-
-			return template.Substring(0, m.Index);
+			return !m.Success
+				? template
+				: template.Substring(0, m.Index);
 		}
 
 		private static Regex BuildFamilyRegex(string prefix)

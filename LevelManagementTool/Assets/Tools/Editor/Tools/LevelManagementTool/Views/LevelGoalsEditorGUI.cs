@@ -17,13 +17,13 @@ namespace Game.Levels.EditorTool
 
 			for (int i = 0; i < goals.Count; i++)
 			{
-				var g = goals[i];
+				LevelGoal goal = goals[i];
 
 				using (new EditorGUILayout.HorizontalScope())
 				{
-					g.Type = (GoalType)EditorGUILayout.EnumPopup(g.Type, GUILayout.Width(160));
-					g.Target = Mathf.Max(0, EditorGUILayout.IntField(g.Target, GUILayout.Width(80)));
-					g.Tag = EditorGUILayout.TextField(g.Tag ?? "", GUILayout.ExpandWidth(true));
+					goal.Type = (GoalType)EditorGUILayout.EnumPopup(goal.Type, GUILayout.Width(160));
+					goal.Target = Mathf.Max(0, EditorGUILayout.IntField(goal.Target, GUILayout.Width(80)));
+					goal.Tag = EditorGUILayout.TextField(goal.Tag ?? "", GUILayout.ExpandWidth(true));
 
 					if (GUILayout.Button("X", GUILayout.Width(24)))
 					{
@@ -36,7 +36,7 @@ namespace Game.Levels.EditorTool
 				if (removed)
 					break;
 
-				goals[i] = g;
+				goals[i] = goal;
 			}
 
 			using (new EditorGUI.DisabledScope(goals.Count >= MaxGoals))

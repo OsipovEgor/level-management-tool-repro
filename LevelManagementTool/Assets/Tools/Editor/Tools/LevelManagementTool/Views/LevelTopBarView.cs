@@ -11,13 +11,11 @@ namespace Game.Levels.EditorTool
 		{
 			EditorGUILayout.BeginHorizontal(EditorStyles.toolbar);
 
-			// DB field всегда активен
 			ctx.Database = (LevelDatabase)EditorGUILayout.ObjectField(
 				ctx.Database, typeof(LevelDatabase), false, GUILayout.Width(320));
 
 			GUILayout.Space(8);
 
-			// Всё остальное блокируем, если БД не выбрана
 			using (new EditorGUI.DisabledScope(ctx.Database == null))
 			{
 				string newSearch = EditorGUILayout.TextField(

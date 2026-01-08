@@ -15,7 +15,7 @@ namespace Game.Levels.EditorTool
 		[MenuItem("Tools/What's New")]
 		public static void OpenWhatsNewWindow()
 		{
-			ToolsUpdatesWindow.ShowWindow();
+			WhatsNewWindow.ShowWindow();
 		}
 	}
 }

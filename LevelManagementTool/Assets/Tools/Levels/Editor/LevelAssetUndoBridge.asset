@@ -12,20 +12,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e04f0c2d2b594f0b933d85abe00c2fb1, type: 3}
   m_Name: LevelAssetUndoBridge
   m_EditorClassIdentifier: 
-  created:
-  - assetPath: Assets/ProjectName/Levels/Content/Dungeon_012.asset
-    json: '{"MonoBehaviour":{"m_Enabled":true,"m_EditorHideFlags":0,"m_Name":"Dungeon_012","m_EditorClassIdentifier":"","stableId":"ba9a4bac78354bef8aee4dd6c3f134b3","timeLimitSeconds":120,"difficulty":90,"goals":[{"Type":0,"Target":50,"Tag":"Buildings"},{"Type":1,"Target":20,"Tag":"Medium
-      Size"}]}}'
-    databasePath: 
-    databaseIndex: -1
-  - assetPath: Assets/ProjectName/Levels/Content/Dungeon_013.asset
-    json: '{"MonoBehaviour":{"m_Enabled":true,"m_EditorHideFlags":0,"m_Name":"Dungeon_013","m_EditorClassIdentifier":"","stableId":"9ab093bae3654f49a14bb73d6d91019e","timeLimitSeconds":120,"difficulty":90,"goals":[{"Type":0,"Target":50,"Tag":"Buildings"},{"Type":1,"Target":20,"Tag":"Medium
-      Size"}]}}'
-    databasePath: 
-    databaseIndex: -1
-  - assetPath: Assets/ProjectName/Levels/Content/Dungeon_014.asset
-    json: '{"MonoBehaviour":{"m_Enabled":true,"m_EditorHideFlags":0,"m_Name":"Dungeon_014","m_EditorClassIdentifier":"","stableId":"b50e6714b4e6481faed9ce920a75f7b0","timeLimitSeconds":120,"difficulty":90,"goals":[{"Type":0,"Target":50,"Tag":"Buildings"},{"Type":1,"Target":20,"Tag":"Medium
-      Size"}]}}'
-    databasePath: Assets/ProjectName/Levels/LevelDatabase.asset
-    databaseIndex: 43
+  created: []
   deleted: []

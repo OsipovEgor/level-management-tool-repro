@@ -13,16 +13,16 @@ namespace Game.Levels.EditorTool
 
 			Undo.RegisterCompleteObjectUndo(bridge, undoName);
 
-			var so = new SerializedObject(bridge);
-			var listProp = so.FindProperty("deleted");
+			SerializedObject so = new(bridge);
+			SerializedProperty listProp = so.FindProperty("deleted");
 
 			int start = listProp.arraySize;
 			listProp.arraySize = start + records.Count;
 
 			for (int i = 0; i < records.Count; i++)
 			{
-				var rec = records[i];
-				var elem = listProp.GetArrayElementAtIndex(start + i);
+				LevelAssetRecord rec = records[i];
+				SerializedProperty elem = listProp.GetArrayElementAtIndex(start + i);
 
 				elem.FindPropertyRelative("assetPath").stringValue = rec.assetPath;
 				elem.FindPropertyRelative("json").stringValue = rec.json;
@@ -30,23 +30,23 @@ namespace Game.Levels.EditorTool
 				elem.FindPropertyRelative("databaseIndex").intValue = rec.databaseIndex;
 			}
 
-			so.ApplyModifiedProperties(); // <-- важно: именно это Undo любит
+			so.ApplyModifiedProperties();
 			EditorUtility.SetDirty(bridge);
 		}
 
 		public static void AddCreatedRecord(LevelAssetUndoBridge bridge, LevelAssetRecord record, string undoName)
 		{
-			if (bridge == null || record == null) return;
+			if (!bridge || record == null) return;
 
 			Undo.RegisterCompleteObjectUndo(bridge, undoName);
 
-			var so = new SerializedObject(bridge);
-			var listProp = so.FindProperty("created");
+			SerializedObject so = new(bridge);
+			SerializedProperty listProp = so.FindProperty("created");
 
 			int idx = listProp.arraySize;
 			listProp.arraySize = idx + 1;
 
-			var elem = listProp.GetArrayElementAtIndex(idx);
+			SerializedProperty elem = listProp.GetArrayElementAtIndex(idx);
 			elem.FindPropertyRelative("assetPath").stringValue = record.assetPath;
 			elem.FindPropertyRelative("json").stringValue = record.json;
 			elem.FindPropertyRelative("databasePath").stringValue = record.databasePath;

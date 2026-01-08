@@ -15,6 +15,6 @@ namespace Game.Levels
 	[CreateAssetMenu(menuName = "ProjectName/Levels/Level Id Map", fileName = "LevelIdMap")]
 	public class LevelIdMap : ScriptableObject
 	{
-		public List<LevelIdMapEntry> entries = new List<LevelIdMapEntry>();
+		public List<LevelIdMapEntry> entries = new();
 	}
 }

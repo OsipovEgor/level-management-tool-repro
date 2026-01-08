@@ -8,7 +8,8 @@ namespace Game.Levels.EditorTool
 	{
 		public static void Draw(LevelManagementContext ctx, LevelManagementController controller)
 		{
-			if (!ctx.ShowWelcome) return;
+			if (!ctx.ShowWelcome)
+				return;
 
 			EditorGUILayout.HelpBox(
 				"Welcome to Level Management Tool.\n" +

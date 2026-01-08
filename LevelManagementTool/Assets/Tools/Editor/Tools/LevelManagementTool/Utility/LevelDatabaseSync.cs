@@ -17,33 +17,36 @@ namespace Game.Levels.EditorTool
 	{
 		public static SyncReport Sync(LevelDatabase db, IReadOnlyList<LevelConfig> allLevels)
 		{
-			if (db == null) throw new ArgumentNullException(nameof(db));
-			if (allLevels == null) throw new ArgumentNullException(nameof(allLevels));
+			if (!db)
+				throw new ArgumentNullException(nameof(db));
+
+			if (allLevels == null)
+				throw new ArgumentNullException(nameof(allLevels));
 
 			Undo.RecordObject(db, "Sync Level Database");
 
-			// Remove nulls
 			int removedNulls = 0;
 			for (int i = db.orderedLevels.Count - 1; i >= 0; i--)
 			{
-				if (db.orderedLevels[i] == null)
-				{
-					db.orderedLevels.RemoveAt(i);
-					removedNulls++;
-				}
+				if (db.orderedLevels[i])
+					continue;
+
+				db.orderedLevels.RemoveAt(i);
+				removedNulls++;
 			}
 
-			// Add missing
-			var set = new HashSet<LevelConfig>(db.orderedLevels);
+			HashSet<LevelConfig> set = new(db.orderedLevels);
 			int added = 0;
-			foreach (var lvl in allLevels)
+			foreach (LevelConfig lvl in allLevels)
 			{
-				if (lvl == null) continue;
-				if (set.Add(lvl))
-				{
-					db.orderedLevels.Add(lvl);
-					added++;
-				}
+				if (lvl == null)
+					continue;
+
+				if (!set.Add(lvl))
+					continue;
+
+				db.orderedLevels.Add(lvl);
+				added++;
 			}
 
 			EditorUtility.SetDirty(db);
@@ -58,13 +61,15 @@ namespace Game.Levels.EditorTool
 
 		public static LevelIdMap BuildIdMap(LevelDatabase db, string assetPath)
 		{
-			var map = ScriptableObject.CreateInstance<LevelIdMap>();
+			LevelIdMap map = ScriptableObject.CreateInstance<LevelIdMap>();
 			map.entries = new List<LevelIdMapEntry>(db.Count);
 
 			for (int i = 0; i < db.orderedLevels.Count; i++)
 			{
-				var lvl = db.orderedLevels[i];
-				if (lvl == null) continue;
+				LevelConfig lvl = db.orderedLevels[i];
+
+				if (!lvl)
+					continue;
 
 				map.entries.Add(new LevelIdMapEntry
 				{

@@ -30,7 +30,9 @@ namespace Game.Levels.EditorTool
 			List<LevelConfig> levels = FindAllLevels();
 			foreach (LevelConfig lvl in levels)
 			{
-				if (lvl == null) continue;
+				if (lvl == null)
+					continue;
+
 				set.Add(lvl.name.Trim());
 			}
 

@@ -20,10 +20,12 @@ namespace Game.Levels.EditorTool
 
 		public static void DrawSingleLevelIssues(LevelManagementContext ctx, LevelConfig lvl)
 		{
-			if (lvl == null) return;
+			if (!lvl) return;
 
 			List<ValidationIssue> lvlIssues = ctx.Issues.Where(x => x.Level == lvl).ToList();
-			if (lvlIssues.Count == 0) return;
+
+			if (lvlIssues.Count == 0)
+				return;
 
 			EditorGUILayout.Space(10);
 			EditorGUILayout.LabelField("Issues", EditorStyles.boldLabel);
@@ -39,14 +41,15 @@ namespace Game.Levels.EditorTool
 			}
 		}
 
-		public static void DrawMultiIssues(LevelManagementContext ctx, List<LevelConfig> selected, LevelManagementController controller)
+		public static void DrawMultiIssues(LevelManagementContext ctx, List<LevelConfig> selected,
+			LevelManagementController controller)
 		{
 			if (selected == null || selected.Count == 0)
 				return;
 
 			HashSet<LevelConfig> set = new(selected);
 			List<ValidationIssue> selectedIssues = ctx.Issues
-				.Where(i => i.Level != null && set.Contains(i.Level))
+				.Where(i => i.Level && set.Contains(i.Level))
 				.ToList();
 
 			int err = selectedIssues.Count(i => i.Severity == ValidationSeverity.Error);
@@ -65,14 +68,14 @@ namespace Game.Levels.EditorTool
 			EditorGUILayout.Space(6);
 			EditorGUILayout.LabelField("Issues", EditorStyles.boldLabel);
 
-			var byLevel = selectedIssues
+			IOrderedEnumerable<IGrouping<LevelConfig, ValidationIssue>> byLevel = selectedIssues
 				.GroupBy(i => i.Level)
 				.OrderBy(g => g.Key != null ? g.Key.name : "");
 
-			foreach (var g in byLevel)
+			foreach (IGrouping<LevelConfig, ValidationIssue> g in byLevel)
 			{
 				LevelConfig lvl = g.Key;
-				if (lvl == null) continue;
+				if (!lvl) continue;
 
 				using (new EditorGUILayout.VerticalScope("box"))
 				{

@@ -1,6 +1,5 @@
 ﻿#if UNITY_EDITOR
 using System.Collections.Generic;
-using System.Linq;
 using UnityEditor;
 using UnityEditorInternal;
 using UnityEngine;
@@ -16,8 +15,8 @@ namespace Game.Levels.EditorTool
 
 		public static void ShowWindow()
 		{
-			var w = GetWindow<LevelManagementWindow>("Level Management");
-			w.minSize = new Vector2(1100, 800);
+			LevelManagementWindow w = GetWindow<LevelManagementWindow>("Level Management");
+			w.minSize = new Vector2(1100, 600);
 			w._firstRefresh = false;
 			w.Show();
 		}
@@ -75,10 +74,8 @@ namespace Game.Levels.EditorTool
 
 			EditorGUILayout.BeginHorizontal();
 
-// Сначала готовим ReorderableList, чтобы таблица могла войти в reorder-mode
 			LevelTableView.EnsureDbReorderableList(_ctx, _controller, Repaint);
 
-// Теперь рисуем таблицу
 			LevelTableView.Draw(_ctx, _controller, Repaint);
 
 			LevelInspectorView.Draw(_ctx, _controller);

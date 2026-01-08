@@ -1,7 +1,5 @@
 ﻿#if UNITY_EDITOR
-using System;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEditor;
 using UnityEngine;
 
@@ -20,14 +18,14 @@ namespace Game.Levels.EditorTool
 		{
 			EditorGUILayout.BeginVertical();
 
-			if (GUILayout.Button(LevelToolSettings.showLevelInspector
+			if (GUILayout.Button(LevelToolSettings.ShowLevelInspector
 					? "Hide Level Inspector"
 					: "Show Level Inspector"))
 			{
-				LevelToolSettings.showLevelInspector = !LevelToolSettings.showLevelInspector;
+				LevelToolSettings.ShowLevelInspector = !LevelToolSettings.ShowLevelInspector;
 			}
 
-			if (!LevelToolSettings.showLevelInspector)
+			if (!LevelToolSettings.ShowLevelInspector)
 			{
 				EditorGUILayout.EndVertical();
 				return;
@@ -107,18 +105,21 @@ namespace Game.Levels.EditorTool
 
 			bool changed = so.ApplyModifiedProperties();
 
-			if (changed)
-			{
-				foreach (LevelConfig t in targets)
-					EditorUtility.SetDirty(t);
+			if (!changed)
+				return;
 
-				controller.Validate();
+			foreach (LevelConfig t in targets)
+			{
+				EditorUtility.SetDirty(t);
 			}
+
+			controller.Validate();
 		}
 
 		private static void DrawAutoProperties(SerializedObject so)
 		{
-			if (so == null) return;
+			if (so == null)
+				return;
 
 			SerializedProperty prop = so.GetIterator();
 			bool enterChildren = true;
@@ -136,7 +137,8 @@ namespace Game.Levels.EditorTool
 
 		private static void DrawGoalsForTargets(SerializedObject so, List<LevelConfig> targets)
 		{
-			if (targets == null || targets.Count == 0 || so == null) return;
+			if (targets == null || targets.Count == 0 || so == null)
+				return;
 
 			SerializedProperty goalsProp = so.FindProperty("goals");
 

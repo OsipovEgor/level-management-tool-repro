@@ -3,68 +3,63 @@ using UnityEditor;
 
 namespace Game.Levels.EditorTool
 {
-	/// <summary>
-	/// Per-user editor settings stored in EditorPrefs (not shared in project).
-	/// </summary>
 	public static class LevelToolSettings
 	{
 		private const string KeyPrefix = "Game.Levels.EditorTool.LevelToolSettings.";
 
 		private const string KeyShowWelcomeOnOpen = KeyPrefix + "showWelcomeOnOpen";
-		private const string KeyAutoSyncOnOpen    = KeyPrefix + "autoSyncOnOpen";
+		private const string KeyAutoSyncOnOpen = KeyPrefix + "autoSyncOnOpen";
 		private const string KeyAutoNamingEnabled = KeyPrefix + "autoNamingEnabled";
 		private const string KeyLevelNameTemplate = KeyPrefix + "levelNameTemplate";
 		private const string KeyShowLevelInspector = KeyPrefix + "showLevelInspector";
 
 		// Defaults
-		public const bool DefaultShowWelcomeOnOpen = true;
-		public const bool DefaultAutoSyncOnOpen    = true;
-		public const bool DefaultAutoNamingEnabled = true;
+		private const bool DefaultShowWelcomeOnOpen = true;
+		private const bool DefaultAutoSyncOnOpen = true;
+		private const bool DefaultAutoNamingEnabled = true;
 
 		// Template supports {index} or {index:000}
-		public const string DefaultLevelNameTemplate = "Level_{index:000}";
-		public const bool DefaultShowLevelInspector = false;
+		private const string DefaultLevelNameTemplate = "Level_{index:000}";
+		private const bool DefaultShowLevelInspector = false;
 
-		public static bool showWelcomeOnOpen
+		public static bool ShowWelcomeOnOpen
 		{
 			get => EditorPrefs.GetBool(KeyShowWelcomeOnOpen, DefaultShowWelcomeOnOpen);
 			set => EditorPrefs.SetBool(KeyShowWelcomeOnOpen, value);
 		}
 
-		public static bool autoSyncOnOpen
+		public static bool AutoSyncOnOpen
 		{
 			get => EditorPrefs.GetBool(KeyAutoSyncOnOpen, DefaultAutoSyncOnOpen);
 			set => EditorPrefs.SetBool(KeyAutoSyncOnOpen, value);
 		}
 
-		public static bool autoNamingEnabled
+		public static bool AutoNamingEnabled
 		{
 			get => EditorPrefs.GetBool(KeyAutoNamingEnabled, DefaultAutoNamingEnabled);
 			set => EditorPrefs.SetBool(KeyAutoNamingEnabled, value);
 		}
 
-		public static string levelNameTemplate
+		public static string LevelNameTemplate
 		{
 			get => EditorPrefs.GetString(KeyLevelNameTemplate, DefaultLevelNameTemplate);
-			set => EditorPrefs.SetString(KeyLevelNameTemplate, string.IsNullOrWhiteSpace(value) ? DefaultLevelNameTemplate : value);
+			set => EditorPrefs.SetString(KeyLevelNameTemplate,
+				string.IsNullOrWhiteSpace(value) ? DefaultLevelNameTemplate : value);
 		}
 
-		public static bool showLevelInspector
+		public static bool ShowLevelInspector
 		{
 			get => EditorPrefs.GetBool(KeyShowLevelInspector, DefaultShowLevelInspector);
 			set => EditorPrefs.SetBool(KeyShowLevelInspector, value);
 		}
-		
-		/// <summary>
-		/// Optional helper if you want a "Reset to defaults" button.
-		/// </summary>
+
 		public static void ResetToDefaults()
 		{
-			showWelcomeOnOpen = DefaultShowWelcomeOnOpen;
-			autoSyncOnOpen = DefaultAutoSyncOnOpen;
-			autoNamingEnabled = DefaultAutoNamingEnabled;
-			levelNameTemplate = DefaultLevelNameTemplate;
-			showLevelInspector = DefaultShowLevelInspector;
+			ShowWelcomeOnOpen = DefaultShowWelcomeOnOpen;
+			AutoSyncOnOpen = DefaultAutoSyncOnOpen;
+			AutoNamingEnabled = DefaultAutoNamingEnabled;
+			LevelNameTemplate = DefaultLevelNameTemplate;
+			ShowLevelInspector = DefaultShowLevelInspector;
 		}
 	}
 }

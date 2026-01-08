@@ -1,7 +1,6 @@
 ﻿#if UNITY_EDITOR
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
@@ -20,25 +19,25 @@ namespace Game.Levels.EditorTool
 
 		public void LoadSettings()
 		{
-			_ctx.ShowWelcome = LevelToolSettings.showWelcomeOnOpen;
+			_ctx.ShowWelcome = LevelToolSettings.ShowWelcomeOnOpen;
 		}
 
 		public void RefreshLevels()
 		{
 			_ctx.AllLevels = LevelAssetIndex.FindAllLevels();
 
-			foreach (var lvl in _ctx.AllLevels)
+			foreach (LevelConfig lvl in _ctx.AllLevels)
+			{
 				LevelStableIdUtility.EnsureStableId(lvl);
+			}
 
 			ApplyFilter();
 		}
 
 		public void ApplyFilter()
 		{
-			// 1) Берём базовый список в правильном порядке (DB -> потом сироты)
-			var ordered = BuildOrderedLevels();
+			List<LevelConfig> ordered = BuildOrderedLevels();
 
-			// 2) Применяем поиск
 			if (string.IsNullOrWhiteSpace(_ctx.Search))
 			{
 				_ctx.FilteredLevels = ordered;
@@ -47,32 +46,32 @@ namespace Game.Levels.EditorTool
 
 			string s = _ctx.Search.ToLowerInvariant();
 			_ctx.FilteredLevels = ordered
-				.Where(l => l != null && l.name.ToLowerInvariant().Contains(s))
+				.Where(levelConfig => levelConfig != null && levelConfig.name.ToLowerInvariant().Contains(s))
 				.ToList();
 		}
 
 		private List<LevelConfig> BuildOrderedLevels()
 		{
-			// если DB не выбран — оставляем как есть (то, что вернул индексатор)
-			var all = _ctx.AllLevels.Where(l => l != null).Distinct().ToList();
+			List<LevelConfig> all = _ctx.AllLevels.Where(l => l != null).Distinct().ToList();
 
 			if (_ctx.Database == null || _ctx.Database.orderedLevels == null || _ctx.Database.orderedLevels.Count == 0)
 				return all;
 
-			// 1) DB order
-			var result = new List<LevelConfig>(_ctx.Database.orderedLevels.Count + 32);
-			var inDb = new HashSet<LevelConfig>();
+			List<LevelConfig> result = new(_ctx.Database.orderedLevels.Count + 32);
+			HashSet<LevelConfig> inDb = new();
 
-			foreach (var lvl in _ctx.Database.orderedLevels)
+			foreach (LevelConfig lvl in _ctx.Database.orderedLevels)
 			{
-				if (lvl == null) continue;
+				if (!lvl)
+					continue;
+
 				if (inDb.Add(lvl))
 					result.Add(lvl);
 			}
 
 			// 2) Orphans (assets not in DB) — добавляем в конец
 			// Можно сортировать по имени, чтобы было стабильно.
-			var orphans = all.Where(l => l != null && !inDb.Contains(l))
+			IOrderedEnumerable<LevelConfig> orphans = all.Where(l => l != null && !inDb.Contains(l))
 				.OrderBy(l => l.name, StringComparer.OrdinalIgnoreCase);
 
 			result.AddRange(orphans);
@@ -87,32 +86,47 @@ namespace Game.Levels.EditorTool
 
 		public void SetSelected(LevelConfig lvl, bool selected)
 		{
-			if (lvl == null) return;
+			if (!lvl)
+				return;
 
-			if (selected) _ctx.SelectedStableIds.Add(lvl.StableId);
-			else _ctx.SelectedStableIds.Remove(lvl.StableId);
+			if (selected)
+			{
+				_ctx.SelectedStableIds.Add(lvl.StableId);
+			}
+			else
+			{
+				_ctx.SelectedStableIds.Remove(lvl.StableId);
+			}
 		}
 
 		public List<LevelConfig> GetSelectedLevels()
 		{
 			List<LevelConfig> list = new();
+
 			foreach (LevelConfig lvl in _ctx.AllLevels)
+			{
 				if (lvl != null && _ctx.SelectedStableIds.Contains(lvl.StableId))
 					list.Add(lvl);
+			}
+
 			return list;
 		}
 
-		public LevelConfig GetDatabaseAnchorLevel()
+		private LevelConfig GetDatabaseAnchorLevel()
 		{
-			if (_ctx.SelectedIndex < 0) return null;
+			if (_ctx.SelectedIndex < 0)
+				return null;
 
 			List<LevelConfig> filtered = string.IsNullOrWhiteSpace(_ctx.Search)
 				? _ctx.AllLevels
-				: _ctx.AllLevels.Where(l =>
-						l != null && l.name.ToLowerInvariant().Contains(_ctx.Search.ToLowerInvariant()))
+				: _ctx.AllLevels.Where(levelConfig =>
+						levelConfig != null &&
+						levelConfig.name.ToLowerInvariant().Contains(_ctx.Search.ToLowerInvariant()))
 					.ToList();
 
-			if (_ctx.SelectedIndex < 0 || _ctx.SelectedIndex >= filtered.Count) return null;
+			if (_ctx.SelectedIndex < 0 || _ctx.SelectedIndex >= filtered.Count)
+				return null;
+
 			return filtered[_ctx.SelectedIndex];
 		}
 
@@ -132,7 +146,8 @@ namespace Game.Levels.EditorTool
 
 		public void ExportIdMap()
 		{
-			if (_ctx.Database == null) return;
+			if (!_ctx.Database)
+				return;
 
 			string path = EditorUtility.SaveFilePanelInProject(
 				"Save LevelIdMap",
@@ -151,7 +166,7 @@ namespace Game.Levels.EditorTool
 		{
 			_ctx.ShowWelcome = false;
 
-			LevelToolSettings.showWelcomeOnOpen = false;
+			LevelToolSettings.ShowWelcomeOnOpen = false;
 			AssetDatabase.SaveAssets();
 		}
 
@@ -162,19 +177,17 @@ namespace Game.Levels.EditorTool
 		public void CreateLevelsClicked()
 		{
 			string folder = LevelAssetCreationUtility.DefaultLevelsFolder;
-			_ = LevelAssetCreationUtility.GetUniquePath(folder, "Temp"); // ensure folder exists
+			_ = LevelAssetCreationUtility.GetUniquePath(folder, "Temp");
 
-			if (LevelToolSettings.autoNamingEnabled)
+			if (LevelToolSettings.AutoNamingEnabled)
 			{
 				CreateMultipleLevelsAutoNamed(_ctx.CreateCount);
 				return;
 			}
 
-			// If not auto naming -> prompt(s)
+			HashSet<string> existingNames = LevelAssetIndex.CollectAllLevelAssetNames();
 			if (_ctx.CreateCount > 1)
 			{
-				HashSet<string> existingNames = LevelAssetIndex.CollectAllLevelAssetNames();
-
 				bool canInsert = _ctx.Database != null;
 				string afterLabel = "(end)";
 
@@ -194,25 +207,25 @@ namespace Game.Levels.EditorTool
 				return;
 			}
 
-			{
-				HashSet<string> existingNames = LevelAssetIndex.CollectAllLevelAssetNames();
-				LevelNamePromptWindow.Show(
-					title: "Create Level",
-					folder: folder,
-					initialName: "Level_New",
-					existingNames: existingNames,
-					onOk: (levelName) => CreateSingleLevelWithName(folder, levelName),
-					onCancel: () => { }
-				);
-			}
+			LevelNamePromptWindow.Show(
+				title: "Create Level",
+				folder: folder,
+				initialName: "Level_New",
+				existingNames: existingNames,
+				onOk: (levelName) => CreateSingleLevelWithName(folder, levelName),
+				onCancel: () => { }
+			);
 		}
 
 		public void DeleteLevelsBatch(List<LevelConfig> levels)
 		{
-			if (levels == null) return;
+			if (levels == null)
+				return;
 
 			levels = levels.Where(l => l != null).Distinct().ToList();
-			if (levels.Count == 0) return;
+			
+			if (levels.Count == 0)
+				return;
 
 			if (!EditorUtility.DisplayDialog(
 					"Delete Levels",
@@ -232,7 +245,9 @@ namespace Game.Levels.EditorTool
 				dbIndexByLevel = new Dictionary<LevelConfig, int>(levels.Count);
 
 				foreach (LevelConfig lvl in levels)
+				{
 					dbIndexByLevel[lvl] = _ctx.Database.orderedLevels.IndexOf(lvl);
+				}
 			}
 
 			foreach (LevelConfig lvl in levels)
@@ -243,7 +258,7 @@ namespace Game.Levels.EditorTool
 				string json = EditorJsonUtility.ToJson(lvl);
 
 				int idx = -1;
-				if (dbIndexByLevel != null && dbIndexByLevel.TryGetValue(lvl, out var storedIdx))
+				if (dbIndexByLevel != null && dbIndexByLevel.TryGetValue(lvl, out int storedIdx))
 					idx = storedIdx;
 
 				records.Add(new LevelAssetRecord
@@ -255,7 +270,8 @@ namespace Game.Levels.EditorTool
 				});
 			}
 
-			if (records.Count == 0) return;
+			if (records.Count == 0)
+				return;
 
 			int group = Undo.GetCurrentGroup();
 			Undo.IncrementCurrentGroup();
@@ -263,14 +279,11 @@ namespace Game.Levels.EditorTool
 
 			LevelAssetUndoBridge bridge = LevelAssetUndoManager.Bridge;
 
-// Undo for database (before we mutate orderedLevels)
 			if (_ctx.Database != null && _ctx.Database.orderedLevels != null)
 				Undo.RegisterCompleteObjectUndo(_ctx.Database, "Delete Levels (Database)");
 
-// IMPORTANT: do NOT register bridge undo here – AddDeletedRecords already does it.
 			LevelUndoBridgeSerializedOps.AddDeletedRecords(bridge, records, "Delete Levels (Bridge)");
 
-// Remove from database list (still undoable because we registered DB above)
 			if (_ctx.Database != null && _ctx.Database.orderedLevels != null)
 			{
 				List<LevelAssetRecord> ordered = records
@@ -280,18 +293,25 @@ namespace Game.Levels.EditorTool
 
 				foreach (LevelAssetRecord rec in ordered)
 				{
-					if (rec.databaseIndex >= 0 && rec.databaseIndex < _ctx.Database.orderedLevels.Count)
+					if (rec.databaseIndex < 0 || rec.databaseIndex >= _ctx.Database.orderedLevels.Count)
+						continue;
+					
+					LevelConfig obj = AssetDatabase.LoadAssetAtPath<LevelConfig>(rec.assetPath);
+					if (obj != null)
 					{
-						LevelConfig obj = AssetDatabase.LoadAssetAtPath<LevelConfig>(rec.assetPath);
-						if (obj != null) _ctx.Database.orderedLevels.Remove(obj);
-						else _ctx.Database.orderedLevels.RemoveAt(rec.databaseIndex);
+						_ctx.Database.orderedLevels.Remove(obj);
+					}
+					else
+					{
+						_ctx.Database.orderedLevels.RemoveAt(rec.databaseIndex);
 					}
 				}
 
 				foreach (LevelAssetRecord rec in records.Where(r => r.databaseIndex < 0))
 				{
 					LevelConfig obj = AssetDatabase.LoadAssetAtPath<LevelConfig>(rec.assetPath);
-					if (obj != null) _ctx.Database.orderedLevels.Remove(obj);
+					if (obj != null)
+						_ctx.Database.orderedLevels.Remove(obj);
 				}
 
 				EditorUtility.SetDirty(_ctx.Database);
@@ -314,13 +334,14 @@ namespace Game.Levels.EditorTool
 			AssetDatabase.SaveAssets();
 			AssetDatabase.Refresh();
 
-// IMPORTANT: refresh snapshots AFTER files are actually gone
 			LevelAssetUndoManager.RefreshSnapshotsNow();
 
 			Undo.CollapseUndoOperations(group);
 
 			foreach (LevelConfig lvl in levels)
+			{
 				SetSelected(lvl, false);
+			}
 
 			RefreshLevels();
 			Validate();
@@ -332,26 +353,29 @@ namespace Game.Levels.EditorTool
 
 		private void CreateMultipleLevelsManual(List<string> names, bool insertIntoDatabaseAfterSelected)
 		{
-			if (names == null || names.Count == 0) return;
+			if (names == null || names.Count == 0)
+				return;
 
 			string folder = LevelAssetCreationUtility.DefaultLevelsFolder;
 
 			LevelAssetUndoBridge bridge = LevelAssetUndoManager.Bridge;
 			Undo.RecordObject(bridge, "Batch Create Levels");
 
-			List<LevelConfig> created = new List<LevelConfig>(names.Count);
+			List<LevelConfig> created = new(names.Count);
 			LevelConfig last = null;
 
 			foreach (string n in names)
 			{
 				last = CreateLevelAssetWithPreset(folder, n);
-				if (last != null) created.Add(last);
+				
+				if (last)
+					created.Add(last);
 			}
 
 			EditorUtility.SetDirty(bridge);
 			LevelAssetUndoManager.RefreshSnapshotsNow();
 
-			if (_ctx.Database != null && insertIntoDatabaseAfterSelected && created.Count > 0)
+			if (_ctx.Database && insertIntoDatabaseAfterSelected && created.Count > 0)
 			{
 				InsertCreatedLevelsAfterAnchor(created);
 			}
@@ -365,7 +389,9 @@ namespace Game.Levels.EditorTool
 
 		private void InsertCreatedLevelsAfterAnchor(List<LevelConfig> created)
 		{
-			if (_ctx.Database == null || created == null || created.Count == 0) return;
+			if (_ctx.Database == null || created == null || created.Count == 0)
+				return;
+			
 			_ctx.Database.orderedLevels ??= new List<LevelConfig>();
 
 			LevelConfig anchor = GetDatabaseAnchorLevel();
@@ -376,13 +402,18 @@ namespace Game.Levels.EditorTool
 			if (anchor != null)
 			{
 				int anchorIndex = _ctx.Database.orderedLevels.IndexOf(anchor);
-				if (anchorIndex >= 0) insertIndex = anchorIndex + 1;
+				
+				if (anchorIndex >= 0)
+					insertIndex = anchorIndex + 1;
 			}
 
 			foreach (LevelConfig lvl in created)
 			{
-				if (lvl == null) continue;
-				if (_ctx.Database.orderedLevels.Contains(lvl)) continue;
+				if (lvl == null) 
+					continue;
+				
+				if (_ctx.Database.orderedLevels.Contains(lvl))
+					continue;
 
 				insertIndex = Mathf.Clamp(insertIndex, 0, _ctx.Database.orderedLevels.Count);
 				_ctx.Database.orderedLevels.Insert(insertIndex, lvl);
@@ -395,15 +426,21 @@ namespace Game.Levels.EditorTool
 
 		private void AppendCreatedLevelsToDatabase(List<LevelConfig> created)
 		{
-			if (_ctx.Database == null || created == null || created.Count == 0) return;
+			if (_ctx.Database == null || created == null || created.Count == 0)
+				return;
+			
 			_ctx.Database.orderedLevels ??= new List<LevelConfig>();
 
 			Undo.RecordObject(_ctx.Database, "Append Created Levels To Database");
 
 			foreach (LevelConfig lvl in created)
 			{
-				if (lvl == null) continue;
-				if (_ctx.Database.orderedLevels.Contains(lvl)) continue;
+				if (lvl == null)
+					continue;
+				
+				if (_ctx.Database.orderedLevels.Contains(lvl))
+					continue;
+				
 				_ctx.Database.orderedLevels.Add(lvl);
 			}
 
@@ -418,31 +455,37 @@ namespace Game.Levels.EditorTool
 			LevelAssetUndoBridge bridge = LevelAssetUndoManager.Bridge;
 			Undo.RecordObject(bridge, "Create Levels");
 
-			var created = new List<LevelConfig>(count);
+			List<LevelConfig> created = new(count);
 
 			for (int i = 0; i < count; i++)
 			{
 				string levelName = LevelAssetCreationUtility.GenerateNextLevelName();
-				var lvl = CreateLevelAssetWithPreset(folder, levelName);
+				LevelConfig lvl = CreateLevelAssetWithPreset(folder, levelName);
 				if (lvl != null) created.Add(lvl);
 			}
 
-			if (created.Count > 0 && _ctx.Database != null)
+			switch (created.Count)
 			{
-				// ✅ ВАЖНО: явное добавление в DB (undoable),
-				// вместо "надеемся на Sync" в FinalizeAfterCreate
-				AppendCreatedLevelsToDatabase(created);
+				case > 0 when _ctx.Database != null:
+				{
+					AppendCreatedLevelsToDatabase(created);
 
-				// ✅ Пишем created records в bridge уже ПОСЛЕ того,
-				// как уровни реально попали в DB (теперь index можно получить точно)
-				foreach (var lvl in created)
-					RecordCreatedLevelInBridge(bridge, lvl);
-			}
-			else if (created.Count > 0)
-			{
-				// DB не выбрана — просто записываем created records без databasePath/index
-				foreach (var lvl in created)
-					RecordCreatedLevelInBridge(bridge, lvl);
+					foreach (LevelConfig lvl in created)
+					{
+						RecordCreatedLevelInBridge(bridge, lvl);
+					}
+
+					break;
+				}
+				case > 0:
+				{
+					foreach (LevelConfig lvl in created)
+					{
+						RecordCreatedLevelInBridge(bridge, lvl);
+					}
+
+					break;
+				}
 			}
 
 			if (created.Count > 0)
@@ -461,12 +504,12 @@ namespace Game.Levels.EditorTool
 
 			LevelConfig created = CreateLevelAssetWithPreset(folder, levelName);
 
-			if (created != null && _ctx.Database != null)
+			if (created && _ctx.Database)
 			{
 				AppendCreatedLevelsToDatabase(new List<LevelConfig> { created });
 			}
 
-			if (created != null)
+			if (created)
 			{
 				RecordCreatedLevelInBridge(bridge, created);
 
@@ -492,26 +535,25 @@ namespace Game.Levels.EditorTool
 			AssetDatabase.SaveAssets();
 			AssetDatabase.Refresh();
 
-			// recordInBridge больше не используется здесь намеренно:
-			// теперь запись в bridge делается в RecordCreatedLevelInBridge(...)
-			// после того, как ассет добавлен в DB и индекс известен.
-
 			return asset;
 		}
 
 		private void RecordCreatedLevelInBridge(LevelAssetUndoBridge bridge, LevelConfig asset)
 		{
-			if (bridge == null || asset == null) return;
+			if (!bridge || !asset)
+				return;
 
 			string path = AssetDatabase.GetAssetPath(asset);
-			if (string.IsNullOrEmpty(path)) return;
+			
+			if (string.IsNullOrEmpty(path))
+				return;
 
 			string json = EditorJsonUtility.ToJson(asset);
 
 			string dbPath = null;
 			int dbIndex = -1;
 
-			if (_ctx.Database != null && _ctx.Database.orderedLevels != null)
+			if (_ctx.Database && _ctx.Database.orderedLevels != null)
 			{
 				dbPath = AssetDatabase.GetAssetPath(_ctx.Database);
 				dbIndex = _ctx.Database.orderedLevels.IndexOf(asset);
@@ -543,7 +585,9 @@ namespace Game.Levels.EditorTool
 			if (_ctx.PresetGoals != null)
 			{
 				for (int i = 0; i < _ctx.PresetGoals.Count && i < 3; i++)
+				{
 					lvl.goals.Add(_ctx.PresetGoals[i]);
+				}
 			}
 
 			EditorUtility.SetDirty(lvl);
@@ -553,17 +597,17 @@ namespace Game.Levels.EditorTool
 		{
 			RefreshLevels();
 
-			if (_ctx.Database != null)
+			if (_ctx.Database)
 				LevelDatabaseSync.Sync(_ctx.Database, _ctx.AllLevels);
 
 			Validate();
 
-			if (lastCreated != null)
-			{
-				Selection.activeObject = lastCreated;
-				EditorGUIUtility.PingObject(lastCreated);
-				_ctx.SelectedIndex = _ctx.AllLevels.IndexOf(lastCreated);
-			}
+			if (!lastCreated)
+				return;
+			
+			Selection.activeObject = lastCreated;
+			EditorGUIUtility.PingObject(lastCreated);
+			_ctx.SelectedIndex = _ctx.AllLevels.IndexOf(lastCreated);
 		}
 
 		// -------------------------
@@ -572,19 +616,22 @@ namespace Game.Levels.EditorTool
 
 		public void ApplyGoalsPerLevel(Dictionary<LevelConfig, List<LevelGoal>> map)
 		{
-			if (map == null || map.Count == 0) return;
+			if (map == null || map.Count == 0)
+				return;
 
-			var levels = map.Keys.Where(x => x != null).ToList();
-			if (levels.Count == 0) return;
+			List<LevelConfig> levels = map.Keys.Where(x => x).ToList();
+			
+			if (levels.Count == 0)
+				return;
 
 			Undo.RecordObjects(levels.Cast<Object>().ToArray(), "Apply Goals (Per Level)");
 
-			foreach (var kv in map)
+			foreach (KeyValuePair<LevelConfig, List<LevelGoal>> kv in map)
 			{
-				var lvl = kv.Key;
-				if (lvl == null) continue;
+				LevelConfig lvl = kv.Key;
+				if (!lvl) continue;
 
-				var goals = kv.Value ?? new List<LevelGoal>();
+				List<LevelGoal> goals = kv.Value ?? new List<LevelGoal>();
 				lvl.goals ??= new List<LevelGoal>(3);
 				lvl.goals.Clear();
 

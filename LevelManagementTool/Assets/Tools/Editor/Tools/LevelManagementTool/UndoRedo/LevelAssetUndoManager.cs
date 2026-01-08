@@ -5,7 +5,7 @@ using System.IO;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
-using Game.Levels;
+using Object = UnityEngine.Object;
 
 namespace Game.Levels.EditorTool
 {
@@ -34,7 +34,7 @@ namespace Game.Levels.EditorTool
 		{
 			EnsureBridge();
 
-			ClearBridgeOnEditorStartIfNeeded(); // <-- ДО CacheCurrentSets()
+			ClearBridgeOnEditorStartIfNeeded();
 			CacheCurrentSets();
 
 			Undo.undoRedoPerformed -= OnUndoRedoPerformed;
@@ -43,16 +43,16 @@ namespace Game.Levels.EditorTool
 
 		private static void ClearBridgeOnEditorStartIfNeeded()
 		{
-			// SessionState сбрасывается при перезапуске Unity Editor (но сохраняется при domain reload)
 			if (SessionState.GetBool(SessionClearedKey, false))
 				return;
 
 			SessionState.SetBool(SessionClearedKey, true);
 
 			LevelAssetUndoBridge bridge = EnsureBridge();
-			if (bridge == null) return;
 
-			// Без Undo: это "служебное" состояние, не пользовательская правка.
+			if (bridge == null)
+				return;
+
 			bridge.created.Clear();
 			bridge.deleted.Clear();
 
@@ -62,12 +62,14 @@ namespace Game.Levels.EditorTool
 
 		private static LevelAssetUndoBridge EnsureBridge()
 		{
-			if (_bridge != null) return _bridge;
+			if (_bridge)
+				return _bridge;
 
 			EnsureFolderExists(Path.GetDirectoryName(BridgeAssetPath)?.Replace('\\', '/'));
 
 			_bridge = AssetDatabase.LoadAssetAtPath<LevelAssetUndoBridge>(BridgeAssetPath);
-			if (_bridge == null)
+
+			if (!_bridge)
 			{
 				_bridge = ScriptableObject.CreateInstance<LevelAssetUndoBridge>();
 				AssetDatabase.CreateAsset(_bridge, BridgeAssetPath);
@@ -246,7 +248,7 @@ namespace Game.Levels.EditorTool
 			if (string.IsNullOrEmpty(assetPath))
 				return;
 
-			if (AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(assetPath) == null)
+			if (AssetDatabase.LoadAssetAtPath<Object>(assetPath) == null)
 				return;
 
 			AssetDatabase.DeleteAsset(assetPath);

@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace Game.Levels.EditorTool
 {
@@ -26,7 +27,7 @@ namespace Game.Levels.EditorTool
 		private int _count = 10;
 
 		private string _error;
-		private List<GeneratedName> _generated = new List<GeneratedName>();
+		private List<GeneratedName> _generated = new();
 
 		private Action<List<string>, bool> _onOk2;
 		private Action _onCancel;
@@ -47,7 +48,7 @@ namespace Game.Levels.EditorTool
 			Action<List<string>, bool> onOk,
 			Action onCancel)
 		{
-			var w = CreateInstance<LevelBatchNamePromptWindow>();
+			LevelBatchNamePromptWindow w = CreateInstance<LevelBatchNamePromptWindow>();
 			w.titleContent = new GUIContent(title);
 			w._folder = folder;
 			w._count = Mathf.Clamp(count, 2, 200);
@@ -102,12 +103,8 @@ namespace Game.Levels.EditorTool
 				using (new EditorGUI.DisabledScope(!_canInsertIntoDatabase))
 				{
 					_insertIntoDatabaseAfterSelected = EditorGUILayout.ToggleLeft(
-						$"Insert into LevelDatabase after: {_insertAfterLabel}",
+						$"Include into LevelDatabase after: {_insertAfterLabel}",
 						_insertIntoDatabaseAfterSelected);
-
-					if (!_canInsertIntoDatabase)
-						EditorGUILayout.HelpBox("No LevelDatabase selected. Levels will be created as assets only.",
-							MessageType.None);
 				}
 			}
 
@@ -147,15 +144,18 @@ namespace Game.Levels.EditorTool
 			}
 
 			// Enter/Esc
-			if (Event.current.type == EventType.KeyDown)
+			if (Event.current.type != EventType.KeyDown)
+				return;
+
+			switch (Event.current.keyCode)
 			{
-				if (Event.current.keyCode == KeyCode.Escape)
-				{
+				case KeyCode.Escape:
 					_onCancel?.Invoke();
 					Close();
 					Event.current.Use();
-				}
-				else if (Event.current.keyCode == KeyCode.Return || Event.current.keyCode == KeyCode.KeypadEnter)
+					break;
+				case KeyCode.Return:
+				case KeyCode.KeypadEnter:
 				{
 					if (IsValid())
 					{
@@ -164,37 +164,37 @@ namespace Game.Levels.EditorTool
 					}
 
 					Event.current.Use();
+					break;
 				}
 			}
 		}
 
 		private List<string> GetGeneratedNames()
 		{
-			var list = new List<string>(_generated.Count);
-			foreach (var e in _generated)
+			List<string> list = new(_generated.Count);
+			foreach (GeneratedName e in _generated)
 				list.Add(e.name);
 			return list;
 		}
 
 		private int ComputeNextAvailableStartIndex()
 		{
-			// Ищем максимум среди имён вида: prefix + digits + suffix (digits = число, длина любая)
-			// Затем возвращаем max+1.
-			var prefix = (_prefix ?? "").Trim();
-			var suffix = (_suffix ?? "").Trim();
+			string prefix = (_prefix ?? "").Trim();
+			string suffix = (_suffix ?? "").Trim();
 
 			int max = -1;
 
-			foreach (var name in _existingNames)
+			foreach (string levelName in _existingNames)
 			{
-				if (!name.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)) continue;
-				if (!name.EndsWith(suffix, StringComparison.OrdinalIgnoreCase)) continue;
+				if (!levelName.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)) continue;
+				if (!levelName.EndsWith(suffix, StringComparison.OrdinalIgnoreCase)) continue;
 
-				var mid = name.Substring(prefix.Length, name.Length - prefix.Length - suffix.Length);
-				if (string.IsNullOrEmpty(mid)) continue;
+				string mid = levelName.Substring(prefix.Length, levelName.Length - prefix.Length - suffix.Length);
 
-				// mid должен быть числом
-				if (int.TryParse(mid, out var idx))
+				if (string.IsNullOrEmpty(mid))
+					continue;
+
+				if (int.TryParse(mid, out int idx))
 					max = Mathf.Max(max, idx);
 			}
 
@@ -205,42 +205,38 @@ namespace Game.Levels.EditorTool
 		{
 			EditorGUILayout.LabelField("Name preview", EditorStyles.boldLabel);
 
-			using (var sv = new EditorGUILayout.ScrollViewScope(_scroll, GUILayout.Height(220)))
+			using EditorGUILayout.ScrollViewScope sv = new(_scroll, GUILayout.Height(220));
+
+			_scroll = sv.scrollPosition;
+
+			if (_generated.Count == 0)
 			{
-				_scroll = sv.scrollPosition;
-
-				if (_generated.Count == 0)
-				{
-					EditorGUILayout.LabelField("(no names)");
-					return;
-				}
-
-				int max = Mathf.Min(50, _generated.Count);
-				for (int i = 0; i < max; i++)
-				{
-					var entry = _generated[i];
-
-					if (entry.error == null)
-					{
-						EditorGUILayout.LabelField(entry.name);
-					}
-					else
-					{
-						var prevColor = GUI.color;
-						GUI.color = new Color(1f, 0.45f, 0.45f);
-
-						EditorGUILayout.LabelField(
-							$"{entry.name}  —  {entry.error}",
-							EditorStyles.boldLabel
-						);
-
-						GUI.color = prevColor;
-					}
-				}
-
-				if (_generated.Count > max)
-					EditorGUILayout.LabelField($"... and {_generated.Count - max} more");
+				EditorGUILayout.LabelField("(no names)");
+				return;
 			}
+
+			int max = Mathf.Min(50, _generated.Count);
+			for (int i = 0; i < max; i++)
+			{
+				GeneratedName entry = _generated[i];
+
+				if (entry.error == null)
+				{
+					EditorGUILayout.LabelField(entry.name);
+				}
+				else
+				{
+					Color prevColor = GUI.color;
+					GUI.color = new Color(1f, 0.45f, 0.45f);
+
+					EditorGUILayout.LabelField($"{entry.name}  —  {entry.error}", EditorStyles.boldLabel);
+
+					GUI.color = prevColor;
+				}
+			}
+
+			if (_generated.Count > max)
+				EditorGUILayout.LabelField($"... and {_generated.Count - max} more");
 		}
 
 		private void GenerateAndValidate()
@@ -248,8 +244,8 @@ namespace Game.Levels.EditorTool
 			_error = null;
 			_generated.Clear();
 
-			var prefix = (_prefix ?? "").Trim();
-			var suffix = (_suffix ?? "").Trim();
+			string prefix = (_prefix ?? "").Trim();
+			string suffix = (_suffix ?? "").Trim();
 
 			if (string.IsNullOrEmpty(prefix) && string.IsNullOrEmpty(suffix))
 			{
@@ -257,65 +253,68 @@ namespace Game.Levels.EditorTool
 				return;
 			}
 
-			var localSet = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+			HashSet<string> localSet = new(StringComparer.OrdinalIgnoreCase);
 
 			for (int i = 0; i < _count; i++)
 			{
 				int idx = _startIndex + i;
 				string num = idx.ToString(new string('0', _digits));
-				string name = $"{prefix}{num}{suffix}";
+				string levelName = $"{prefix}{num}{suffix}";
 
 				string entryError = null;
 
-				// invalid chars
-				foreach (var c in Path.GetInvalidFileNameChars())
+				foreach (char c in Path.GetInvalidFileNameChars())
 				{
-					if (name.IndexOf(c) >= 0)
-					{
-						entryError = $"Invalid character '{c}'";
-						break;
-					}
+					if (levelName.IndexOf(c) < 0)
+						continue;
+
+					entryError = $"Invalid character '{c}'";
+					break;
 				}
 
 				if (entryError == null &&
-					(name.EndsWith(".", StringComparison.Ordinal) || name.EndsWith(" ", StringComparison.Ordinal)))
+					(levelName.EndsWith(".", StringComparison.Ordinal) ||
+					 levelName.EndsWith(" ", StringComparison.Ordinal)))
 				{
 					entryError = "Cannot end with '.' or space";
 				}
 
-				if (entryError == null && !localSet.Add(name))
+				if (entryError == null && !localSet.Add(levelName))
 				{
 					entryError = "Duplicate in generated list";
 				}
 
-				if (entryError == null && _existingNames.Contains(name))
+				if (entryError == null && _existingNames.Contains(levelName))
 				{
 					entryError = "Already exists (LevelConfig)";
 				}
 
 				if (entryError == null)
 				{
-					var assetPath = $"{_folder}/{name}.asset";
-					if (AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(assetPath) != null)
+					string assetPath = $"{_folder}/{levelName}.asset";
+					if (AssetDatabase.LoadAssetAtPath<Object>(assetPath) != null)
 						entryError = "Asset already exists in folder";
 				}
 
 				_generated.Add(new GeneratedName
 				{
-					name = name,
+					name = levelName,
 					error = entryError
 				});
 			}
 
-			// Общая ошибка (для HelpBox + блокировки Create)
 			if (_generated.Any(e => e.error != null))
 				_error = "Some generated names are invalid. See highlighted entries below.";
 		}
 
 		private bool IsValid()
 		{
-			if (!string.IsNullOrEmpty(_error)) return false;
-			if (_generated == null || _generated.Count < 2) return false;
+			if (!string.IsNullOrEmpty(_error))
+				return false;
+
+			if (_generated == null || _generated.Count < 2)
+				return false;
+
 			return _generated.All(e => e.error == null);
 		}
 	}

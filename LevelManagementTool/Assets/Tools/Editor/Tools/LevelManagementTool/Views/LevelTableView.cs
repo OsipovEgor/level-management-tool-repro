@@ -30,34 +30,33 @@ namespace Game.Levels.EditorTool
 
 			EditorGUILayout.BeginVertical(GUILayout.Width(420));
 
-			// Use visible rows based on current search + issue filter
 			List<LevelConfig> visible;
 
 			if (canReorder)
 			{
-				// В reorder-режиме мы показываем ТОЛЬКО DB-список (как "истина"),
-				// без сирот и без фильтрации — иначе reorder становится непредсказуемым.
-				visible = ctx.Database.orderedLevels.Where(l => l != null).ToList();
+				visible = ctx.Database.orderedLevels.Where(levelConfig => levelConfig).ToList();
 			}
 			else
 			{
-				// В фильтр-режиме используем уже подготовленный список (DB order + orphans, плюс search),
-				// и добавляем issue filter поверх.
 				visible = ctx.FilteredLevels
-					.Where(l => l != null)
-					.Where(l => PassesIssueFilter(ctx, l))
+					.Where(levelConfig => levelConfig)
+					.Where(levelConfig => PassesIssueFilter(ctx, levelConfig))
 					.ToList();
 			}
 
 			DrawHeader(ctx, controller, visible, repaint);
-			DrawTableHeader(ctx);
+			DrawTableHeader();
 
 			ctx.LeftScroll = EditorGUILayout.BeginScrollView(ctx.LeftScroll);
 
 			if (canReorder)
+			{
 				DrawDbReorderable(ctx);
+			}
 			else
+			{
 				DrawRows(ctx, controller, repaint, visible);
+			}
 
 			EditorGUILayout.EndScrollView();
 
@@ -85,15 +84,17 @@ namespace Game.Levels.EditorTool
 			{
 				bool newAll = GUILayout.Toggle(allSelected, GUIContent.none, EditorStyles.toolbarButton,
 					GUILayout.Width(24));
+
 				if (any && newAll != allSelected)
 				{
 					foreach (LevelConfig lvl in visible)
+					{
 						controller.SetSelected(lvl, newAll);
+					}
 				}
 
 				GUILayout.FlexibleSpace();
 
-				// Issue filter dropdown (readable & compact)
 				EditorGUI.BeginChangeCheck();
 				ctx.IssuesFilter = (LevelManagementContext.IssuesFilterMode)EditorGUILayout.EnumPopup(
 					ctx.IssuesFilter, EditorStyles.toolbarPopup, GUILayout.Width(120));
@@ -105,17 +106,18 @@ namespace Game.Levels.EditorTool
 				using (new EditorGUI.DisabledScope(noneSelected))
 				{
 					string text = noneSelected ? "Delete" : $"Delete ({selectedCount})";
-					if (GUILayout.Button(text, EditorStyles.toolbarButton, GUILayout.Width(100)))
-					{
-						var selected = controller.GetSelectedLevels();
-						EditorApplication.delayCall += () => controller.DeleteLevelsBatch(selected);
-						GUIUtility.ExitGUI();
-					}
+
+					if (!GUILayout.Button(text, EditorStyles.toolbarButton, GUILayout.Width(100)))
+						return;
+
+					List<LevelConfig> selected = controller.GetSelectedLevels();
+					EditorApplication.delayCall += () => controller.DeleteLevelsBatch(selected);
+					GUIUtility.ExitGUI();
 				}
 			}
 		}
 
-		private static void DrawTableHeader(LevelManagementContext ctx)
+		private static void DrawTableHeader()
 		{
 			using (new EditorGUILayout.HorizontalScope(EditorStyles.helpBox))
 			{
@@ -136,7 +138,9 @@ namespace Game.Levels.EditorTool
 			for (int i = 0; i < visible.Count; i++)
 			{
 				LevelConfig lvl = visible[i];
-				if (lvl == null) continue;
+
+				if (!lvl)
+					continue;
 
 				bool isSel = ctx.IsSelected(lvl);
 
@@ -145,13 +149,11 @@ namespace Game.Levels.EditorTool
 				bool hasWarn =
 					ctx.Issues.Any(x => IssueMatchesLevel(x, lvl) && x.Severity == ValidationSeverity.Warning);
 
-
 				string fullGoalsSummary = BuildGoalsSummary(lvl.goals);
 				string shortGoalsSummary = Ellipsize(fullGoalsSummary, GoalsSummaryMaxChars);
 
 				EditorGUILayout.BeginHorizontal();
 
-				// Selected row background (subtle)
 				Rect rowRect =
 					GUILayoutUtility.GetRect(0, EditorGUIUtility.singleLineHeight, GUILayout.ExpandWidth(true));
 				rowRect.height = EditorGUIUtility.singleLineHeight + 4;
@@ -160,8 +162,7 @@ namespace Game.Levels.EditorTool
 				if (isSel)
 					EditorGUI.DrawRect(rowRect, new Color(0.22f, 0.45f, 0.85f, 0.12f));
 
-				// Now actually draw row content over that rect:
-				GUILayout.Space(0); // keep layout stable
+				GUILayout.Space(0);
 
 				bool newSel = GUILayout.Toggle(isSel, GUIContent.none, GUILayout.Width(ColSel));
 				if (newSel != isSel)
@@ -175,8 +176,7 @@ namespace Game.Levels.EditorTool
 				GUILayout.Label(lvl.timeLimitSeconds.ToString(), GUILayout.Width(ColTime));
 				GUILayout.Label(lvl.difficulty.ToString(), GUILayout.Width(ColDiff));
 
-				// Goals summary with tooltip
-				GUIContent goalsContent = new GUIContent(shortGoalsSummary, fullGoalsSummary);
+				GUIContent goalsContent = new(shortGoalsSummary, fullGoalsSummary);
 				GUILayout.Label(goalsContent, EditorStyles.miniLabel, GUILayout.Width(ColGoals));
 
 				string issuesTxt = hasError ? "ERROR" : hasWarn ? "WARNING" : "";
@@ -184,54 +184,54 @@ namespace Game.Levels.EditorTool
 
 				EditorGUILayout.EndHorizontal();
 
-				// Click behavior: plain click selects single; Ctrl/Cmd toggles; Shift range select
-				// NO modal opening on click.
 				Rect last = GUILayoutUtility.GetLastRect();
 				Rect clickRect = last;
 				clickRect.xMin += ColSel;
 
-				if (e.type == EventType.MouseDown && e.button == 0 && clickRect.Contains(e.mousePosition))
+				if (e.type != EventType.MouseDown || e.button != 0 || !clickRect.Contains(e.mousePosition))
+					continue;
+
+				bool ctrl = e.control || e.command;
+				bool shift = e.shift;
+
+				if (!ctrl && !shift)
 				{
-					bool ctrl = e.control || e.command;
-					bool shift = e.shift;
-
-					if (!ctrl && !shift)
-					{
-						ClearSelection(ctx, controller);
-						controller.SetSelected(lvl, true);
-						ctx.SelectedIndex = i;
-						repaint?.Invoke();
-					}
-					else if (shift)
-					{
-						int anchor = ctx.SelectedIndex >= 0 ? ctx.SelectedIndex : i;
-						int min = Mathf.Min(anchor, i);
-						int max = Mathf.Max(anchor, i);
-
-						for (int k = min; k <= max; k++)
-						{
-							LevelConfig lv2 = visible[k];
-							if (lv2 != null) controller.SetSelected(lv2, true);
-						}
-
-						repaint?.Invoke();
-					}
-					else // ctrl/cmd
-					{
-						controller.SetSelected(lvl, !ctx.IsSelected(lvl));
-						ctx.SelectedIndex = i;
-						repaint?.Invoke();
-					}
-
-					e.Use();
+					ClearSelection(ctx, controller);
+					controller.SetSelected(lvl, true);
+					ctx.SelectedIndex = i;
 				}
+				else if (shift)
+				{
+					int anchor = ctx.SelectedIndex >= 0 ? ctx.SelectedIndex : i;
+					int min = Mathf.Min(anchor, i);
+					int max = Mathf.Max(anchor, i);
+
+					for (int k = min; k <= max; k++)
+					{
+						LevelConfig lv2 = visible[k];
+						if (lv2 != null) controller.SetSelected(lv2, true);
+					}
+				}
+				else // ctrl/cmd
+				{
+					controller.SetSelected(lvl, !ctx.IsSelected(lvl));
+					ctx.SelectedIndex = i;
+				}
+
+				repaint?.Invoke();
+
+				e.Use();
 			}
 		}
 
 		private static bool IssueMatchesLevel(ValidationIssue issue, LevelConfig lvl)
 		{
-			if (issue.Level == null || lvl == null) return false;
-			if (string.IsNullOrEmpty(issue.Level.StableId) || string.IsNullOrEmpty(lvl.StableId)) return false;
+			if (!issue.Level || !lvl)
+				return false;
+
+			if (string.IsNullOrEmpty(issue.Level.StableId) || string.IsNullOrEmpty(lvl.StableId))
+				return false;
+
 			return string.Equals(issue.Level.StableId, lvl.StableId, StringComparison.OrdinalIgnoreCase);
 		}
 
@@ -273,19 +273,22 @@ namespace Game.Levels.EditorTool
 
 				GUILayout.FlexibleSpace();
 
-				if (GUILayout.Button("Clear Selection", GUILayout.Width(120), GUILayout.Height(26)))
-				{
-					ClearSelection(ctx, controller);
-					repaint?.Invoke();
-				}
+				if (!GUILayout.Button("Clear Selection", GUILayout.Width(120), GUILayout.Height(26)))
+					return;
+
+				ClearSelection(ctx, controller);
+				repaint?.Invoke();
 			}
 		}
 
 		private static void ClearSelection(LevelManagementContext ctx, LevelManagementController controller)
 		{
 			List<LevelConfig> selected = controller.GetSelectedLevels();
+
 			foreach (LevelConfig lvl in selected)
+			{
 				controller.SetSelected(lvl, false);
+			}
 
 			ctx.SelectedIndex = -1;
 		}
@@ -309,7 +312,8 @@ namespace Game.Levels.EditorTool
 
 		private static string BuildGoalsSummary(List<LevelGoal> goals)
 		{
-			if (goals == null || goals.Count == 0) return "(empty)";
+			if (goals == null || goals.Count == 0)
+				return "(empty)";
 
 			return string.Join("; ", goals.Select(g =>
 			{
@@ -320,19 +324,22 @@ namespace Game.Levels.EditorTool
 
 		private static string Ellipsize(string s, int maxChars)
 		{
-			if (string.IsNullOrEmpty(s) || maxChars <= 0) return "";
-			if (s.Length <= maxChars) return s;
-			if (maxChars <= 1) return "…";
+			if (string.IsNullOrEmpty(s) || maxChars <= 0)
+				return "";
+
+			if (s.Length <= maxChars)
+				return s;
+
+			if (maxChars <= 1)
+				return "…";
+
 			return s.Substring(0, maxChars - 1) + "…";
 		}
 
 		private static void DrawDbReorderable(LevelManagementContext ctx)
 		{
-			// У ReorderableList внутри свой layout. Мы отключили header/add/remove при создании.
-			// Важно: таблиц-хедер у нас уже нарисован сверху.
 			ctx.DbOrderList.DoLayoutList();
 
-			// Подсказка пользователю, почему сейчас "перетаскивается"
 			EditorGUILayout.Space(4);
 			EditorGUILayout.HelpBox(
 				"Reorder is available only when Search is empty and Issues Filter = All.",
@@ -344,7 +351,7 @@ namespace Game.Levels.EditorTool
 			LevelManagementController controller,
 			Action repaint)
 		{
-			if (ctx.Database == null)
+			if (!ctx.Database)
 			{
 				ctx.DbOrderList = null;
 				ctx.DbOrderListFor = null;
@@ -364,26 +371,27 @@ namespace Game.Levels.EditorTool
 				displayHeader: false,
 				displayAddButton: false,
 				displayRemoveButton: false
-			);
-
-			ctx.DbOrderList.elementHeight = EditorGUIUtility.singleLineHeight + 6;
-
-			ctx.DbOrderList.onReorderCallback = _ =>
+			)
 			{
-				Undo.RecordObject(ctx.Database, "Reorder Levels");
-				EditorUtility.SetDirty(ctx.Database);
-				AssetDatabase.SaveAssets();
+				elementHeight = EditorGUIUtility.singleLineHeight + 6,
+				onReorderCallback = _ =>
+				{
+					Undo.RecordObject(ctx.Database, "Reorder Levels");
+					EditorUtility.SetDirty(ctx.Database);
+					AssetDatabase.SaveAssets();
 
-				controller.ApplyFilter();
-				controller.Validate();
-				repaint?.Invoke();
-			};
+					controller.ApplyFilter();
+					controller.Validate();
+					repaint?.Invoke();
+				},
+				drawElementCallback = (rect, index, _, _) =>
+				{
+					if (index < 0 || index >= ctx.Database.orderedLevels.Count)
+						return;
 
-			ctx.DbOrderList.drawElementCallback = (rect, index, isActive, isFocused) =>
-			{
-				if (index < 0 || index >= ctx.Database.orderedLevels.Count) return;
-				var lvl = ctx.Database.orderedLevels[index];
-				DrawDbRow(ctx, controller, repaint, rect, lvl, index);
+					LevelConfig lvl = ctx.Database.orderedLevels[index];
+					DrawDbRow(ctx, controller, repaint, rect, lvl, index);
+				}
 			};
 		}
 
@@ -400,14 +408,16 @@ namespace Game.Levels.EditorTool
 
 			bool isSel = (lvl != null) && ctx.IsSelected(lvl);
 
-			// фон выделения
+			// selection bg
 			if (isSel)
+			{
 				EditorGUI.DrawRect(
 					new Rect(rect.x, rect.y - 1, rect.width, rect.height + 2),
 					new Color(0.22f, 0.45f, 0.85f, 0.12f));
+			}
 
 			// checkbox
-			var rSel = new Rect(rect.x, rect.y, ColSel, rect.height);
+			Rect rSel = new(rect.x, rect.y, ColSel, rect.height);
 			bool newSel = GUI.Toggle(rSel, isSel, GUIContent.none);
 			if (lvl != null && newSel != isSel)
 			{
@@ -417,17 +427,20 @@ namespace Game.Levels.EditorTool
 			}
 
 			// columns
-			var rName = new Rect(rSel.xMax, rect.y, ColName, rect.height);
-			var rTime = new Rect(rName.xMax, rect.y, ColTime, rect.height);
-			var rDiff = new Rect(rTime.xMax, rect.y, ColDiff, rect.height);
-			var rGoals = new Rect(rDiff.xMax, rect.y, ColGoals, rect.height);
-			var rIssues = new Rect(rGoals.xMax, rect.y, ColIssues, rect.height);
+			Rect rName = new(rSel.xMax, rect.y, ColName, rect.height);
+			Rect rTime = new(rName.xMax, rect.y, ColTime, rect.height);
+			Rect rDiff = new(rTime.xMax, rect.y, ColDiff, rect.height);
+			Rect rGoals = new(rDiff.xMax, rect.y, ColGoals, rect.height);
+			Rect rIssues = new(rGoals.xMax, rect.y, ColIssues, rect.height);
 
 			EditorGUI.LabelField(rName, lvl ? lvl.name : "(missing)");
 			EditorGUI.LabelField(rTime, lvl ? lvl.timeLimitSeconds.ToString() : "-");
 			EditorGUI.LabelField(rDiff, lvl ? lvl.difficulty.ToString() : "-");
 
-			string full = lvl ? BuildGoalsSummary(lvl.goals) : "";
+			string full = lvl
+				? BuildGoalsSummary(lvl.goals)
+				: "";
+
 			string shortTxt = Ellipsize(full, GoalsSummaryMaxChars);
 			EditorGUI.LabelField(rGoals, new GUIContent(shortTxt, full), EditorStyles.miniLabel);
 
@@ -437,25 +450,30 @@ namespace Game.Levels.EditorTool
 						   ctx.Issues.Any(x => IssueMatchesLevel(x, lvl) && x.Severity == ValidationSeverity.Warning);
 
 			GUIContent ic = GUIContent.none;
-			if (hasError) ic = EditorGUIUtility.IconContent("console.erroricon");
-			else if (hasWarn) ic = EditorGUIUtility.IconContent("console.warnicon");
+
+			if (hasError)
+			{
+				ic = EditorGUIUtility.IconContent("console.erroricon");
+			}
+			else if (hasWarn)
+			{
+				ic = EditorGUIUtility.IconContent("console.warnicon");
+			}
 
 			EditorGUI.LabelField(rIssues, ic);
 
-			// Клик по строке (кроме чекбокса): только selection, без модалки
-			var clickRect = new Rect(rect.x + ColSel, rect.y - 2, rect.width - ColSel, rect.height + 4);
-			var e = Event.current;
-			if (lvl != null && e.type == EventType.MouseDown && e.button == 0 && clickRect.Contains(e.mousePosition))
-			{
-				bool ctrl = e.control || e.command;
-				bool shift = e.shift;
+			Rect clickRect = new(rect.x + ColSel, rect.y - 2, rect.width - ColSel, rect.height + 4);
+			Event e = Event.current;
 
-				controller.SetSelected(lvl, !ctx.IsSelected(lvl));
-				ctx.SelectedIndex = index;
-				repaint?.Invoke();
+			if (lvl == null || e.type != EventType.MouseDown || e.button != 0 ||
+				!clickRect.Contains(e.mousePosition))
+				return;
 
-				e.Use();
-			}
+			controller.SetSelected(lvl, !ctx.IsSelected(lvl));
+			ctx.SelectedIndex = index;
+			repaint?.Invoke();
+
+			e.Use();
 		}
 	}
 }

@@ -10,11 +10,5 @@ namespace Game.Levels
 		public List<LevelConfig> orderedLevels = new();
 
 		public int Count => orderedLevels?.Count ?? 0;
-
-		public LevelConfig GetByIndex(int index)
-		{
-			if (orderedLevels == null || index < 0 || index >= orderedLevels.Count) return null;
-			return orderedLevels[index];
-		}
 	}
 }

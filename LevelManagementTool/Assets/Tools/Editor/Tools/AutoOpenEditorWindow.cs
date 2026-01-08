@@ -22,7 +22,7 @@ namespace ProjectName.Editor.ToolsUpdates
 
 			if (EditorPrefs.GetBool(AutoOpenKey, true))
 			{
-				ToolsUpdatesWindow.ShowWindow();
+				WhatsNewWindow.ShowWindow();
 			}
 		}
 

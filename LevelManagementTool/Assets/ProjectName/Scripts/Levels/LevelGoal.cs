@@ -15,10 +15,7 @@ namespace Game.Levels
 	public struct LevelGoal
 	{
 		public GoalType Type;
-
 		[Min(0)] public int Target;
-
-		// Optional discriminator (e.g. "Cars", "Trees", etc.)
 		public string Tag;
 	}
 }

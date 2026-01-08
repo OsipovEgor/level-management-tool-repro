@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
-using Game.Levels;
 
 namespace Game.Levels.EditorTool
 {
@@ -12,47 +11,24 @@ namespace Game.Levels.EditorTool
 	{
 		private const int MaxGoals = 3;
 
-		// -------- Single mode (старое поведение) --------
 		private List<LevelGoal> _singleGoals;
 		private Action<List<LevelGoal>> _onOkSingle;
 		private Action _onCancelSingle;
 
-		// -------- Multi mode (новое) --------
 		private bool _isMulti;
 		private List<LevelConfig> _targets;
-		private Dictionary<string, List<LevelGoal>> _goalsByStableId; // editable copies per level
+		private Dictionary<string, List<LevelGoal>> _goalsByStableId;
 		private Action<Dictionary<LevelConfig, List<LevelGoal>>> _onOkMulti;
 		private Action _onCancelMulti;
 
 		private bool _editSameForAll = true;
 		private List<LevelGoal> _commonGoals;
 
-		private bool _showPerLevelGoals = true; // “галочка держать перед глазами”
+		private bool _showPerLevelGoals = true;
 		private Vector2 _scroll;
 
 		// ---------------- Public API ----------------
 
-		public static void Show(string title, List<LevelGoal> initial, Action<List<LevelGoal>> onOk, Action onCancel)
-		{
-			var w = CreateInstance<LevelGoalsPromptWindow>();
-			w.titleContent = new GUIContent(title);
-
-			w._isMulti = false;
-			// IMPORTANT: deep copy to avoid mutating source goals even if LevelGoal is a class
-			w._singleGoals = DeepCopyGoals(initial);
-
-			w._onOkSingle = onOk;
-			w._onCancelSingle = onCancel;
-
-			w.minSize = new Vector2(520, 300);
-			w.ShowModalUtility();
-		}
-
-		/// <summary>
-		/// Multi: отображает goals для всех уровней сразу (без кликов).
-		/// Галка "Edit same for all" включает общий редактор.
-		/// Галка "Show per-level goals" держит все значения перед глазами.
-		/// </summary>
 		public static void ShowMulti(
 			string title,
 			IReadOnlyList<LevelConfig> targets,
@@ -149,17 +125,16 @@ namespace Game.Levels.EditorTool
 
 			EditorGUILayout.Space(6);
 
-			using (var sv = new EditorGUILayout.ScrollViewScope(_scroll))
+			using (EditorGUILayout.ScrollViewScope sv = new(_scroll))
 			{
 				_scroll = sv.scrollPosition;
 
-				// 1) Общий редактор
 				if (_editSameForAll)
 				{
-					EditorGUILayout.HelpBox("Editing common goals. Press OK to apply to all selected levels.", MessageType.None);
+					EditorGUILayout.HelpBox("Editing common goals. Press OK to apply to all selected levels.",
+						MessageType.None);
 					LevelGoalsEditorGUI.DrawGoalsEditor(ref _commonGoals);
 
-					// 2) И по твоему желанию — держим перед глазами, что у кого сейчас
 					if (_showPerLevelGoals)
 					{
 						EditorGUILayout.Space(10);
@@ -168,7 +143,6 @@ namespace Game.Levels.EditorTool
 				}
 				else
 				{
-					// Пер-уровневое редактирование: всё на экране сразу (без кликов)
 					DrawPerLevelEditableTable();
 				}
 			}
@@ -183,11 +157,12 @@ namespace Game.Levels.EditorTool
 			EditorGUILayout.LabelField("Current goals per level (read-only)", EditorStyles.boldLabel);
 			EditorGUILayout.Space(4);
 
-			foreach (var lvl in _targets)
+			foreach (LevelConfig lvl in _targets)
 			{
-				if (lvl == null) continue;
+				if (lvl == null)
+					continue;
 
-				var goals = GetGoalsForTarget(lvl) ?? new List<LevelGoal>(MaxGoals);
+				List<LevelGoal> goals = GetGoalsForTarget(lvl) ?? new List<LevelGoal>(MaxGoals);
 
 				using (new EditorGUILayout.VerticalScope("box"))
 				{
@@ -206,9 +181,8 @@ namespace Game.Levels.EditorTool
 
 					using (new EditorGUI.DisabledScope(true))
 					{
-						for (int i = 0; i < goals.Count; i++)
+						foreach (LevelGoal g in goals)
 						{
-							var g = goals[i];
 							using (new EditorGUILayout.HorizontalScope())
 							{
 								EditorGUILayout.EnumPopup(g.Type, GUILayout.Width(160));
@@ -226,7 +200,7 @@ namespace Game.Levels.EditorTool
 			EditorGUILayout.LabelField("Goals per level (editable)", EditorStyles.boldLabel);
 			EditorGUILayout.Space(4);
 
-			foreach (var lvl in _targets)
+			foreach (LevelConfig lvl in _targets)
 			{
 				if (lvl == null) continue;
 
@@ -241,7 +215,6 @@ namespace Game.Levels.EditorTool
 							EditorGUIUtility.PingObject(lvl);
 					}
 
-					// inline editor for this level
 					LevelGoalsEditorGUI.DrawGoalsEditor(ref goals);
 
 					SetGoalsForTarget(lvl, goals);
@@ -269,12 +242,11 @@ namespace Game.Levels.EditorTool
 					Close();
 				}
 
-				if (GUILayout.Button("OK", GUILayout.Width(110)))
-				{
-					// IMPORTANT: deep copy on output too
-					_onOkSingle?.Invoke(DeepCopyGoals(_singleGoals));
-					Close();
-				}
+				if (!GUILayout.Button("OK", GUILayout.Width(110)))
+					return;
+
+				_onOkSingle?.Invoke(DeepCopyGoals(_singleGoals));
+				Close();
 			}
 		}
 
@@ -293,11 +265,11 @@ namespace Game.Levels.EditorTool
 
 				using (new EditorGUI.DisabledScope(!enabledOk))
 				{
-					if (GUILayout.Button("OK", GUILayout.Width(110)))
-					{
-						_onOkMulti?.Invoke(BuildResultMapForOk());
-						Close();
-					}
+					if (!GUILayout.Button("OK", GUILayout.Width(110)))
+						return;
+
+					_onOkMulti?.Invoke(BuildResultMapForOk());
+					Close();
 				}
 			}
 		}
@@ -308,18 +280,21 @@ namespace Game.Levels.EditorTool
 		{
 			_goalsByStableId = new Dictionary<string, List<LevelGoal>>(StringComparer.OrdinalIgnoreCase);
 
-			foreach (var lvl in _targets)
+			foreach (LevelConfig lvl in _targets)
 			{
-				if (lvl == null) continue;
+				if (lvl == null)
+					continue;
+
 				_goalsByStableId[lvl.StableId] = DeepCopyGoals(lvl.goals);
 			}
 		}
 
 		private List<LevelGoal> GetGoalsForTarget(LevelConfig lvl)
 		{
-			if (lvl == null) return null;
+			if (!lvl)
+				return null;
 
-			if (_goalsByStableId != null && _goalsByStableId.TryGetValue(lvl.StableId, out var goals))
+			if (_goalsByStableId != null && _goalsByStableId.TryGetValue(lvl.StableId, out List<LevelGoal> goals))
 				return goals;
 
 			return DeepCopyGoals(lvl.goals);
@@ -327,24 +302,31 @@ namespace Game.Levels.EditorTool
 
 		private void SetGoalsForTarget(LevelConfig lvl, List<LevelGoal> goals)
 		{
-			if (lvl == null) return;
+			if (!lvl)
+				return;
+
 			_goalsByStableId ??= new Dictionary<string, List<LevelGoal>>(StringComparer.OrdinalIgnoreCase);
 			_goalsByStableId[lvl.StableId] = DeepCopyGoals(goals);
 		}
 
 		private Dictionary<LevelConfig, List<LevelGoal>> BuildResultMapForOk()
 		{
-			var map = new Dictionary<LevelConfig, List<LevelGoal>>();
+			Dictionary<LevelConfig, List<LevelGoal>> map = new();
 
 			if (_editSameForAll)
 			{
-				var common = DeepCopyGoals(_commonGoals);
-				foreach (var lvl in _targets)
-					if (lvl != null) map[lvl] = DeepCopyGoals(common);
+				List<LevelGoal> common = DeepCopyGoals(_commonGoals);
+
+				foreach (LevelConfig lvl in _targets)
+				{
+					if (lvl != null)
+						map[lvl] = DeepCopyGoals(common);
+				}
+
 				return map;
 			}
 
-			foreach (var lvl in _targets)
+			foreach (LevelConfig lvl in _targets)
 			{
 				if (lvl == null) continue;
 				map[lvl] = DeepCopyGoals(GetGoalsForTarget(lvl));
@@ -355,36 +337,34 @@ namespace Game.Levels.EditorTool
 
 		private bool AllGoalsSameAcrossTargets()
 		{
-			if (_targets == null || _targets.Count <= 1) return true;
+			if (_targets == null || _targets.Count <= 1)
+				return true;
 
 			List<LevelGoal> first = GetGoalsForTarget(_targets[0]);
+
 			for (int i = 1; i < _targets.Count; i++)
 			{
 				if (!GoalsEqual(first, GetGoalsForTarget(_targets[i])))
 					return false;
 			}
+
 			return true;
 		}
 
-		/// <summary>
-		/// Deep copy goals to avoid mutating original assets on Cancel (important if LevelGoal is a class).
-		/// </summary>
 		private static List<LevelGoal> DeepCopyGoals(List<LevelGoal> src)
 		{
-			var list = new List<LevelGoal>(MaxGoals);
+			List<LevelGoal> list = new(MaxGoals);
 			if (src == null) return list;
 
 			for (int i = 0; i < src.Count && i < MaxGoals; i++)
 			{
-				var g = src[i];
+				LevelGoal goal = src[i];
 
-				// If LevelGoal is a struct: this is just a value copy.
-				// If LevelGoal is a class: we create a new instance.
 				list.Add(new LevelGoal
 				{
-					Type = g.Type,
-					Target = g.Target,
-					Tag = g.Tag ?? ""
+					Type = goal.Type,
+					Target = goal.Target,
+					Tag = goal.Tag ?? ""
 				});
 			}
 
